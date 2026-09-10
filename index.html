@@ -102,12 +102,14 @@
   <!-- HEADER -->
   <header class="app-header">
     <button class="btn text-white p-0" onclick="toggleSidebar(true)"><i class="fa-solid fa-bars fs-5"></i></button>
-    <h1>
-    <img src="benin.png" alt="Drapeau Bénin" class="me-2 rounded shadow-sm" style="height: 30px; width: auto; object-fit: contain;">
-    <span>AFRI LINK LEDGER</span>
-    <img src="rdc.png" alt="Drapeau RDC" class="ms-2 rounded shadow-sm" style="height: 30px; width: auto; object-fit: contain;">
+    <h1 class="d-flex align-items-center gap-2 flex-grow-1">
+      <img src="benin.png" alt="Drapeau Bénin" class="rounded shadow-sm" style="height: 30px; width: auto; object-fit: contain;">
+      <span>AFRI LINK LEDGER</span>
+      <img src="rdc.png" alt="Drapeau RDC" class="rounded shadow-sm" style="height: 30px; width: auto; object-fit: contain;">
+    </h1>
     <div class="d-flex align-items-center gap-2">
       <span class="small d-none d-md-inline" id="currentDate"></span>
+      <span id="netStatus" class="badge-status status-online"><i class="fa-solid fa-wifi me-1"></i>En ligne</span>
     </div>
   </header>
 
@@ -461,27 +463,103 @@
 <!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3797xa8XdDiTcOKLxOTkaJ1AfH5cnJaY",
+    authDomain: "imany-transfert.firebaseapp.com",
+    databaseURL: "https://imany-transfert-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "imany-transfert",
+    storageBucket: "imany-transfert.firebasestorage.app",
+    messagingSenderId: "425059145846",
+    appId: "1:425059145846:web:c0e71f720e80104ebc2757"
+  };
+
+  let useFirebase = true;
+  let db = null;
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    console.log("✅ Firebase Realtime Database connecté");
+  } catch (e) {
+    console.error("❌ Erreur connexion Firebase:", e);
+    useFirebase = false;
+  }
+
+  window.useFirebase = useFirebase;
+  window.db = db;
+  window.fbUtils = { ref, set, remove, onValue, update };
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 /* =========================================================
    MONEY TRANSFERT PWA - LOGIQUE MÉTIER
    ========================================================= */
 
-// ----- STORAGE -----
-const DB = {
-  get:(k,d=[])=>JSON.parse(localStorage.getItem('mt_'+k)||JSON.stringify(d)),
-  set:(k,v)=>localStorage.setItem('mt_'+k,JSON.stringify(v))
-};
+// ----- STORAGE & SYNC -----
+const collections = ['approv', 'kinCtn', 'ctnKin', 'report', 'sortieCtn', 'sortieKin'];
 
 let state = {
-  approv: DB.get('approv'),
-  kinCtn: DB.get('kinCtn'),
-  ctnKin: DB.get('ctnKin'),
-  report: DB.get('report'),
-  sortieCtn: DB.get('sortieCtn'),
-  sortieKin: DB.get('sortieKin'),
-  settings: DB.get('settings', {initCtn:0, initKin:0, tauxMoyen:0})
+  approv: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_approv')) || []),
+  kinCtn: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_kinCtn')) || []),
+  ctnKin: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_ctnKin')) || []),
+  report: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_report')) || []),
+  sortieCtn: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieCtn')) || []),
+  sortieKin: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieKin')) || []),
+  settings: window.useFirebase ? {initCtn:0, initKin:0, tauxMoyen:0} : (JSON.parse(localStorage.getItem('mt_settings')) || {initCtn:0, initKin:0, tauxMoyen:0})
 };
+
+function syncItem(collection, data) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
+    return;
+  }
+  const { id, ...rest } = data;
+  window.fbUtils.set(window.fbUtils.ref(window.db, `${collection}/${id}`), rest).catch(e => console.error("Sync error:", e));
+}
+
+function deleteItem(collection, id) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
+    return;
+  }
+  window.fbUtils.remove(window.fbUtils.ref(window.db, `${collection}/${id}`)).catch(e => console.error("Delete error:", e));
+}
+
+function syncSettings(settings) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_settings', JSON.stringify(settings));
+    return;
+  }
+  window.fbUtils.set(window.fbUtils.ref(window.db, 'settings'), settings).catch(e => console.error("Sync settings error:", e));
+}
+
+function setupRealtimeListeners() {
+  if (!window.useFirebase || !window.db) return;
+  
+  collections.forEach(col => {
+    window.fbUtils.onValue(window.fbUtils.ref(window.db, col), (snapshot) => {
+      const data = snapshot.val();
+      state[col] = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+      renderAll();
+    });
+  });
+
+  window.fbUtils.onValue(window.fbUtils.ref(window.db, 'settings'), (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      state.settings = data;
+      if ($('initCtn')) $('initCtn').value = state.settings.initCtn || 0;
+      if ($('initKin')) $('initKin').value = state.settings.initKin || 0;
+      if ($('tauxMoyen')) $('tauxMoyen').value = state.settings.tauxMoyen || 0;
+      renderAll();
+    }
+  });
+}
 
 // ----- UTILS -----
 const $ = id => document.getElementById(id);
@@ -527,9 +605,10 @@ function saveApprov() {
     status: $('approv-status').value
   };
   if(!data.amount) return toast('Montant requis','danger');
-  if(id) { const i = state.approv.findIndex(a=>a.id===id); state.approv[i]=data; }
+  if(id) { const i = state.approv.findIndex(a=>a.id===id); if(i!==-1) state.approv[i]=data; }
   else state.approv.push(data);
-  DB.set('approv', state.approv);
+  
+  syncItem('approv', data);
   closeModal('modalApprov'); resetForm('approv');
   renderAll(); toast('Approvisionnement enregistré');
 }
@@ -542,7 +621,8 @@ function editApprov(id) {
 function delApprov(id) {
   if(!confirm('Supprimer cet approvisionnement ?')) return;
   state.approv = state.approv.filter(a=>a.id!==id);
-  DB.set('approv', state.approv); renderAll(); toast('Supprimé','warning');
+  deleteItem('approv', id);
+  renderAll(); toast('Supprimé','warning');
 }
 function renderApprov() {
   const tb = $('tbodyApprov');
@@ -590,9 +670,10 @@ function saveKinCtn() {
     phone: $('kc-phone').value
   };
   if(!data.received) return toast('Montant requis','danger');
-  if(id) { const i = state.kinCtn.findIndex(a=>a.id===id); state.kinCtn[i]=data; }
+  if(id) { const i = state.kinCtn.findIndex(a=>a.id===id); if(i!==-1) state.kinCtn[i]=data; }
   else state.kinCtn.push(data);
-  DB.set('kinCtn', state.kinCtn);
+  
+  syncItem('kinCtn', data);
   closeModal('modalKinCtn'); resetForm('kc');
   renderAll(); toast('Transfert enregistré');
 }
@@ -606,7 +687,8 @@ function editKinCtn(id) {
 function delKinCtn(id) {
   if(!confirm('Supprimer ce transfert ?')) return;
   state.kinCtn = state.kinCtn.filter(a=>a.id!==id);
-  DB.set('kinCtn', state.kinCtn); renderAll(); toast('Supprimé','warning');
+  deleteItem('kinCtn', id);
+  renderAll(); toast('Supprimé','warning');
 }
 function renderKinCtn(filter='') {
   const tb = $('tbodyKinCtn');
@@ -654,9 +736,10 @@ function saveCtnKin() {
     phone: $('ck-phone').value
   };
   if(!data.received) return toast('Montant requis','danger');
-  if(id) { const i = state.ctnKin.findIndex(a=>a.id===id); state.ctnKin[i]=data; }
+  if(id) { const i = state.ctnKin.findIndex(a=>a.id===id); if(i!==-1) state.ctnKin[i]=data; }
   else state.ctnKin.push(data);
-  DB.set('ctnKin', state.ctnKin);
+  
+  syncItem('ctnKin', data);
   closeModal('modalCtnKin'); resetForm('ck');
   renderAll(); toast('Transfert enregistré');
 }
@@ -670,7 +753,8 @@ function editCtnKin(id) {
 function delCtnKin(id) {
   if(!confirm('Supprimer ?')) return;
   state.ctnKin = state.ctnKin.filter(a=>a.id!==id);
-  DB.set('ctnKin', state.ctnKin); renderAll(); toast('Supprimé','warning');
+  deleteItem('ctnKin', id);
+  renderAll(); toast('Supprimé','warning');
 }
 function renderCtnKin() {
   const tb = $('tbodyCtnKin');
@@ -703,9 +787,10 @@ function saveReport() {
     served: parseFloat($('rep-served').value)||0
   };
   if(!data.total) return toast('Montant requis','danger');
-  if(id) { const i = state.report.findIndex(a=>a.id===id); state.report[i]=data; }
+  if(id) { const i = state.report.findIndex(a=>a.id===id); if(i!==-1) state.report[i]=data; }
   else state.report.push(data);
-  DB.set('report', state.report);
+  
+  syncItem('report', data);
   closeModal('modalReport'); resetForm('rep');
   renderAll(); toast('Code reporté enregistré');
 }
@@ -718,7 +803,8 @@ function editReport(id) {
 function delReport(id) {
   if(!confirm('Supprimer ?')) return;
   state.report = state.report.filter(a=>a.id!==id);
-  DB.set('report', state.report); renderAll(); toast('Supprimé','warning');
+  deleteItem('report', id);
+  renderAll(); toast('Supprimé','warning');
 }
 function renderReport() {
   const tb = $('tbodyReport');
@@ -756,9 +842,10 @@ function saveSortieCtn() {
     obs: $('sc-obs').value
   };
   if(!data.amount) return toast('Montant requis','danger');
-  if(id) { const i = state.sortieCtn.findIndex(a=>a.id===id); state.sortieCtn[i]=data; }
+  if(id) { const i = state.sortieCtn.findIndex(a=>a.id===id); if(i!==-1) state.sortieCtn[i]=data; }
   else state.sortieCtn.push(data);
-  DB.set('sortieCtn', state.sortieCtn);
+  
+  syncItem('sortieCtn', data);
   closeModal('modalSortieCtn'); resetForm('sc');
   renderAll(); toast('Sortie enregistrée');
 }
@@ -771,7 +858,8 @@ function editSortieCtn(id) {
 function delSortieCtn(id) {
   if(!confirm('Supprimer ?')) return;
   state.sortieCtn = state.sortieCtn.filter(a=>a.id!==id);
-  DB.set('sortieCtn', state.sortieCtn); renderAll(); toast('Supprimé','warning');
+  deleteItem('sortieCtn', id);
+  renderAll(); toast('Supprimé','warning');
 }
 function renderSortieCtn() {
   const tb = $('tbodySortieCtn');
@@ -803,9 +891,10 @@ function saveSortieKin() {
     obs: $('sk-obs').value
   };
   if(!data.depense && !data.transfert) return toast('Montant requis','danger');
-  if(id) { const i = state.sortieKin.findIndex(a=>a.id===id); state.sortieKin[i]=data; }
+  if(id) { const i = state.sortieKin.findIndex(a=>a.id===id); if(i!==-1) state.sortieKin[i]=data; }
   else state.sortieKin.push(data);
-  DB.set('sortieKin', state.sortieKin);
+  
+  syncItem('sortieKin', data);
   closeModal('modalSortieKin'); resetForm('sk');
   renderAll(); toast('Sortie enregistrée');
 }
@@ -819,7 +908,8 @@ function editSortieKin(id) {
 function delSortieKin(id) {
   if(!confirm('Supprimer ?')) return;
   state.sortieKin = state.sortieKin.filter(a=>a.id!==id);
-  DB.set('sortieKin', state.sortieKin); renderAll(); toast('Supprimé','warning');
+  deleteItem('sortieKin', id);
+  renderAll(); toast('Supprimé','warning');
 }
 function renderSortieKin() {
   const tb = $('tbodySortieKin');
@@ -881,7 +971,8 @@ function renderSituation() {
 function saveSettings() {
   state.settings.initCtn = parseFloat($('initCtn').value)||0;
   state.settings.initKin = parseFloat($('initKin').value)||0;
-  DB.set('settings', state.settings);
+  state.settings.tauxMoyen = parseFloat($('tauxMoyen').value)||0;
+  syncSettings(state.settings);
   renderAll();
 }
 
@@ -976,19 +1067,44 @@ function importData(e) {
     try {
       const data = JSON.parse(ev.target.result);
       if(!confirm('Remplacer toutes les données actuelles ?')) return;
-      ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
-        if(data[k]) { state[k]=data[k]; DB.set(k,data[k]); }
-      });
-      if(data.settings) { state.settings=data.settings; DB.set('settings',data.settings); }
+      
+      if (window.useFirebase && window.db) {
+        toast("Importation vers le cloud en cours...", "info");
+        ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
+          if(data[k]) { 
+            state[k] = data[k];
+            data[k].forEach(item => syncItem(k, item));
+          }
+        });
+        if(data.settings) {
+          state.settings = data.settings;
+          syncSettings(data.settings);
+        }
+      } else {
+        ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
+          if(data[k]) { state[k]=data[k]; localStorage.setItem('mt_'+k, JSON.stringify(data[k])); }
+        });
+        if(data.settings) { state.settings=data.settings; localStorage.setItem('mt_settings', JSON.stringify(data.settings)); }
+      }
+      
       renderAll(); toast('Import réussi');
     } catch(err) { toast('Fichier invalide','danger'); }
   };
   reader.readAsText(file);
   e.target.value='';
 }
-function resetData() {
+async function resetData() {
   if(!confirm('⚠️ Supprimer TOUTES les données ? Cette action est irréversible.')) return;
   if(!confirm('Confirmer la suppression définitive ?')) return;
+  
+  if (window.useFirebase && window.db) {
+    toast("Nettoyage du cloud en cours...", "info");
+    const updates = {};
+    collections.forEach(col => { updates[col] = null; });
+    updates['settings'] = null;
+    await window.fbUtils.update(window.fbUtils.ref(window.db), updates);
+  }
+  
   ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin','settings'].forEach(k=>localStorage.removeItem('mt_'+k));
   location.reload();
 }
@@ -996,17 +1112,24 @@ function resetData() {
 // ----- NETWORK STATUS -----
 function updateNet() {
   const el = $('netStatus');
-  if(navigator.onLine) { el.className='badge-status status-online ms-2'; el.textContent='En ligne'; }
-  else { el.className='badge-status status-offline ms-2'; el.textContent='Hors ligne'; }
+  if (!el) return;
+  if (navigator.onLine) { 
+    el.className = 'badge-status status-online'; 
+    el.innerHTML = '<i class="fa-solid fa-wifi me-1"></i>En ligne'; 
+  } else { 
+    el.className = 'badge-status status-offline'; 
+    el.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i>Hors ligne'; 
+  }
 }
-window.addEventListener('online', updateNet);
-window.addEventListener('offline', updateNet);
+window.addEventListener('online', () => { updateNet(); toast('Connexion rétablie', 'success'); });
+window.addEventListener('offline', () => { updateNet(); toast('Vous êtes hors ligne', 'warning'); });
 
 // ----- INIT -----
 document.addEventListener('DOMContentLoaded', () => {
   $('currentDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  $('tauxMoyen').value = state.settings.tauxMoyen;
+  if($('tauxMoyen')) $('tauxMoyen').value = state.settings.tauxMoyen;
   updateNet();
+  setupRealtimeListeners();
   renderAll();
 });
 
@@ -1027,7 +1150,7 @@ const manifest = {
   start_url:".", display:"standalone", background_color:"#F0F2F5", theme_color:"#075E54",
   icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23075E54' rx='20'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml"}]
 };
-const mBlob = new Blob([JSON.stringify(manifest)],{type:'application/json'});
+const mBlob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
 const mLink = document.createElement('link');
 mLink.rel='manifest'; mLink.href=URL.createObjectURL(mBlob);
 document.head.appendChild(mLink);
