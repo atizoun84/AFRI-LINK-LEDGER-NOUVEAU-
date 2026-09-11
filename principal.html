@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#075E54">
+<link rel="manifest" href="manifest.json">
+<title>AFRI LINK LEDGER - Gestion KIN↔CTN</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --wt-dark:#075E54; --wt-teal:#128C7E; --wt-light:#25D366;
+    --wt-bg:#F0F2F5; --wt-card:#FFFFFF; --sidebar-bg:#222e35;
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+  body { background:var(--wt-bg); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; margin:0; }
+  .app-shell { max-width:100%; height:100vh; display:flex; flex-direction:column; background:var(--wt-bg); position:relative; overflow:hidden; }
+  .app-header { background:linear-gradient(90deg,var(--wt-dark),var(--wt-teal)); color:#fff; padding:.75rem 1rem; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 6px rgba(0,0,0,.15); z-index:30; flex-shrink:0; }
+  .app-header h1 { font-size:1.15rem; font-weight:700; margin:0; display:flex; align-items:center; gap:.5rem; }
+  .sidebar { position:absolute; top:0; bottom:0; left:0; width:280px; background:var(--sidebar-bg); color:#cbd5e1; z-index:50; transform:translateX(-100%); transition:transform .3s ease; display:flex; flex-direction:column; box-shadow:2px 0 10px rgba(0,0,0,.3); }
+  .sidebar.open { transform:translateX(0); }
+  .sidebar-header { padding:1rem; background:linear-gradient(90deg,var(--wt-dark),var(--wt-teal)); color:#fff; display:flex; justify-content:space-between; align-items:center; }
+  .sidebar-nav { flex:1; overflow-y:auto; padding:.75rem; }
+  .nav-item { display:flex; align-items:center; gap:.75rem; padding:.7rem .9rem; border-radius:.6rem; color:#cbd5e1; cursor:pointer; margin-bottom:.25rem; font-size:.9rem; transition:all .2s; }
+  .nav-item:hover { background:rgba(255,255,255,.08); color:#fff; }
+  .nav-item.active { background:var(--wt-teal); color:#fff; font-weight:600; }
+  .nav-item i { width:20px; text-align:center; }
+  .overlay { position:absolute; inset:0; background:rgba(0,0,0,.5); z-index:40; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .overlay.show { opacity:1; pointer-events:auto; }
+  .main-content { flex:1; overflow-y:auto; padding:1rem; padding-bottom:2rem; }
+  .view { display:none; animation:fadeIn .3s ease; }
+  .view.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+  .kpi-card { background:#fff; border-radius:1rem; padding:1rem; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  .kpi-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; }
+  .kpi-value { font-size:1.35rem; font-weight:900; margin-top:.25rem; }
+  .card-custom { background:#fff; border-radius:1rem; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  .btn-wt { background:var(--wt-teal); color:#fff; border:none; }
+  .btn-wt:hover { background:var(--wt-dark); color:#fff; }
+  .badge-status { font-size:.7rem; padding:.25rem .5rem; border-radius:999px; font-weight:700; }
+  .status-online { background:#10b981; color:#fff; }
+  .status-sync { background:#f59e0b; color:#fff; animation:pulse 1.5s infinite; }
+  .status-offline { background:#ef4444; color:#fff; animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
+  .table-custom { font-size:.85rem; }
+  .table-custom thead th { background:#f9fafb; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:#374151; position:sticky; top:0; z-index:5; }
+  .table-custom td { vertical-align:middle; }
+  .table-container { max-height:60vh; overflow-y:auto; border-radius:.75rem; border:1px solid #e5e7eb; background:#fff; }
+  .form-label { font-size:.8rem; font-weight:600; color:#374151; }
+  .form-control, .form-select { font-size:.9rem; }
+  .toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; }
+  .shortcut-btn { background:#fff; border:1px solid #e5e7eb; border-radius:1rem; padding:1rem; text-align:center; cursor:pointer; transition:all .2s; }
+  .shortcut-btn:hover { border-color:var(--wt-teal); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+  .shortcut-icon { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto .5rem; font-size:1.25rem; }
+  .amount-positive { color:#10b981; font-weight:700; }
+  .amount-negative { color:#ef4444; font-weight:700; }
+  .amount-neutral { color:#6b7280; font-weight:600; }
+  @media (max-width:768px) {
+    .kpi-value { font-size:1.1rem; }
+    .main-content { padding:.75rem; }
+  }
+  .scrollbar-none::-webkit-scrollbar { display:none; }
+  .scrollbar-none { scrollbar-width:none; }
+  footer { background:#fff; border-top:1px solid #e5e7eb; padding:.75rem; text-align:center; font-size:.75rem; color:#6b7280; flex-shrink:0; }
+
+  /* ===== Bouton d'installation flottant intelligent ===== */
+  #pwaInstallBtn {
+    position: fixed;
+    bottom: 85px;
+    right: 20px;
+    z-index: 9998;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: .8rem 1.3rem;
+    font-size: .85rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    box-shadow: 0 6px 22px rgba(16,185,129,.45), 0 2px 6px rgba(0,0,0,.15);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(24px) scale(.9);
+    pointer-events: none;
+    transition: all .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  #pwaInstallBtn.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  #pwaInstallBtn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 28px rgba(16,185,129,.6), 0 3px 8px rgba(0,0,0,.18);
+  }
+  #pwaInstallBtn:active { transform: translateY(0) scale(.98); }
+  #pwaInstallBtn i { font-size: 1rem; }
+  #pwaInstallBtn .pwa-pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    background: rgba(16,185,129,.35);
+    animation: pwaPulse 2s infinite;
+    z-index: -1;
+  }
+  @keyframes pwaPulse {
+    0% { transform: scale(1); opacity: .7; }
+    100% { transform: scale(1.25); opacity: 0; }
+  }
+  @media (max-width: 768px) {
+    #pwaInstallBtn { bottom: 75px; right: 12px; padding: .7rem 1.05rem; font-size: .78rem; }
+    #pwaInstallBtn i { font-size: .9rem; }
+  }
+
+  /* ===== Filtres de tableaux (ajout) ===== */
+  .filter-bar { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-bottom:.65rem; }
+  .filter-bar .btn-group .btn { font-size:.78rem; font-weight:600; }
+  .filter-bar input[type="text"] { max-width:240px; flex:1; }
+  .code-badge { font-family:'Courier New',monospace; letter-spacing:1px; font-size:.72rem; padding:.25rem .45rem; }
+  .cell-sub { display:block; font-size:.7rem; color:#6b7280; font-weight:400; }
+  .cell-name { font-weight:700; }
+
+  /* ===== Dashboard : titres d'agence (ajout) ===== */
+  .agency-title { display:flex; align-items:center; gap:.55rem; font-size:1rem; font-weight:800; letter-spacing:.4px; margin:0 0 .55rem; padding-bottom:.45rem; border-bottom:2px solid #e5e7eb; }
+  .agency-title.kin { color:#075E54; border-bottom-color:#10b981; }
+  .agency-title.ctn { color:#0a58ca; border-bottom-color:#128C7E; }
+  .agency-title.synth { color:#92400e; border-bottom-color:#f59e0b; }
+  .agency-badge-approv { font-size:.72rem; font-weight:700; letter-spacing:.2px; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="toggleSidebar(false)"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar scrollbar-none" id="sidebar">
+    <div class="sidebar-header">
+      <div><i class="fa-solid fa-link me-2"></i><span class="fw-bold">AFRI LINK LEDGER</span></div>
+      <button class="btn btn-sm text-white" onclick="toggleSidebar(false)"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <!-- ACCUEIL (ENVOYER ET RECEVOIR) - lien vers index.html (ajout) -->
+      <a href="index.html" class="nav-item" style="text-decoration:none;"><i class="fa-solid fa-house"></i>ACCUEIL (ENVOYER ET RECEVOIR)</a>
+      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><i class="fa-solid fa-gauge-high"></i>Tableau de Bord</div>
+      <div class="nav-item" data-view="approv" onclick="showView('approv')"><i class="fa-solid fa-sack-dollar"></i>Approvisionnements</div>
+      <div class="nav-item" data-view="kin-ctn" onclick="showView('kin-ctn')"><i class="fa-solid fa-arrow-right-arrow-left"></i>AGENCE KINSHASA (RDC)</div>
+      <div class="nav-item" data-view="ctn-kin" onclick="showView('ctn-kin')"><i class="fa-solid fa-arrow-left"></i>AGENCE COTONOU (BÉNIN)</div>
+      <div class="nav-item" data-view="report" onclick="showView('report')"><i class="fa-solid fa-clock-rotate-left"></i>Codes Reportés</div>
+      <div class="nav-item" data-view="sortie-ctn" onclick="showView('sortie-ctn')"><i class="fa-solid fa-receipt"></i>Sorties Fonds CTN</div>
+      <div class="nav-item" data-view="sortie-kin" onclick="showView('sortie-kin')"><i class="fa-solid fa-file-invoice-dollar"></i>Sorties Fonds KIN</div>
+      <div class="nav-item" data-view="situation" onclick="showView('situation')"><i class="fa-solid fa-chart-pie"></i>Situation Détaillée</div>
+      <div class="nav-item" data-view="solde" onclick="showView('solde')"><i class="fa-solid fa-scale-balanced"></i>Solde & Marge</div>
+      <div class="border-top border-secondary my-2"></div>
+      <div class="nav-item" onclick="exportData()"><i class="fa-solid fa-download"></i>Exporter Données</div>
+      <div class="nav-item" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-upload"></i>Importer Données</div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <div class="nav-item text-danger" onclick="resetData()"><i class="fa-solid fa-trash"></i>Réinitialiser</div>
+    </nav>
+    <div class="p-3 border-top border-secondary text-center" style="font-size:.7rem;">
+      <div class="text-success"><i class="fa-solid fa-shield-halved"></i> MoneyTransfert v1.0</div>
+      <div class="text-secondary mt-1">PWA Offline Ready</div>
+    </div>
+  </aside>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <button class="btn text-white p-0" onclick="toggleSidebar(true)"><i class="fa-solid fa-bars fs-5"></i></button>
+    <h1 class="d-flex align-items-center gap-2 flex-grow-1">
+      <img src="benin.png" alt="Drapeau Bénin" class="rounded shadow-sm" style="height: 30px; width: auto; object-fit: contain;">
+      <span>AFRI LINK LEDGER</span>
+      <img src="rdc.png" alt="Drapeau RDC" class="rounded shadow-sm" style="height: 30px; width: auto; object-fit: contain;">
+    </h1>
+    <div class="d-flex align-items-center gap-2">
+      <span class="small d-none d-md-inline" id="currentDate"></span>
+      <span id="netStatus" class="badge-status status-online"><i class="fa-solid fa-wifi me-1"></i>En ligne</span>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content scrollbar-none">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <div class="mb-3">
+        <h3 class="fw-bold mb-1"><i class="fa-solid fa-gauge-high text-success"></i> Tableau de Bord</h3>
+        <p class="text-muted small mb-0">Vue d'ensemble par agence — Kinshasa (RDC) & Cotonou (Bénin)</p>
+      </div>
+
+      <!-- ===== AGENCE KINSHASA (RDC) ===== -->
+      <h5 class="agency-title kin">
+        <i class="fa-solid fa-building-columns"></i> AGENCE KINSHASA (RDC)
+        <span class="badge bg-success ms-auto agency-badge-approv" id="dash-kin-approv">Approv. : $0</span>
+      </h5>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Total Reçu</div><div class="kpi-value text-success" id="dash-kin-recu">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Total Servi</div><div class="kpi-value text-info" id="dash-kin-servi">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Reste à Servir</div><div class="kpi-value text-danger" id="dash-kin-reste">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Commissions</div><div class="kpi-value text-primary" id="dash-kin-com">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Charges</div><div class="kpi-value text-danger" id="dash-kin-charges">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff;"><div class="kpi-label" style="color:rgba(255,255,255,.85);">Solde</div><div class="kpi-value" id="dash-kin-solde">$0</div></div></div>
+      </div>
+
+      <!-- ===== AGENCE COTONOU (BÉNIN) ===== -->
+      <h5 class="agency-title ctn">
+        <i class="fa-solid fa-building"></i> AGENCE COTONOU (BÉNIN)
+        <span class="badge bg-info text-dark ms-auto agency-badge-approv" id="dash-ctn-approv">Approv. : $0</span>
+      </h5>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Total Reçu</div><div class="kpi-value text-success" id="dash-ctn-recu">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Total Servi</div><div class="kpi-value text-info" id="dash-ctn-servi">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Reste à Servir</div><div class="kpi-value text-danger" id="dash-ctn-reste">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Commissions</div><div class="kpi-value text-primary" id="dash-ctn-com">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card"><div class="kpi-label">Charges</div><div class="kpi-value text-danger" id="dash-ctn-charges">$0</div></div></div>
+        <div class="col-6 col-md-4"><div class="kpi-card" style="background:linear-gradient(135deg,#128C7E,#075E54); color:#fff;"><div class="kpi-label" style="color:rgba(255,255,255,.85);">Solde</div><div class="kpi-value" id="dash-ctn-solde">$0</div></div></div>
+      </div>
+
+      <!-- ===== SYNTHÈSE GLOBALE ===== -->
+      <h5 class="agency-title synth"><i class="fa-solid fa-chart-line"></i> Synthèse Globale</h5>
+      <div class="row g-2 mb-3">
+        <div class="col-12 col-md-3"><div class="kpi-card"><div class="kpi-label">Total Commissions</div><div class="kpi-value text-primary" id="dash-synth-com">$0</div></div></div>
+        <div class="col-12 col-md-3"><div class="kpi-card"><div class="kpi-label">Total Charges</div><div class="kpi-value text-danger" id="dash-synth-charges">$0</div></div></div>
+        <div class="col-12 col-md-3"><div class="kpi-card"><div class="kpi-label">Total Solde Approv.</div><div class="kpi-value text-warning" id="dash-synth-approv">$0</div></div></div>
+        <div class="col-12 col-md-3"><div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff;"><div class="kpi-label" style="color:rgba(255,255,255,.85);">Total Solde des Agences</div><div class="kpi-value" style="font-size:1.4rem;" id="dash-synth-solde">$0</div></div></div>
+      </div>
+
+      <h5 class="fw-bold mb-2"><i class="fa-solid fa-bolt text-warning"></i> Actions Rapides</h5>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('kin-ctn'); setTimeout(()=>openModal('modalKinCtn'),100)"><div class="shortcut-icon bg-success bg-opacity-10 text-success"><i class="fa-solid fa-plus"></i></div><div class="small fw-bold">Nouveau Transfert KIN→CTN</div></div></div>
+        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('approv'); setTimeout(()=>openApprovModal(),100)"><div class="shortcut-icon bg-primary bg-opacity-10 text-primary"><i class="fa-solid fa-sack-dollar"></i></div><div class="small fw-bold">Approvisionner</div></div></div>
+        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('sortie-kin'); setTimeout(()=>openModal('modalSortieKin'),100)"><div class="shortcut-icon bg-danger bg-opacity-10 text-danger"><i class="fa-solid fa-money-bill-transfer"></i></div><div class="small fw-bold">Transférer vers CTN</div></div></div>
+        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('solde')"><div class="shortcut-icon bg-warning bg-opacity-10 text-warning"><i class="fa-solid fa-chart-line"></i></div><div class="small fw-bold">Voir la Marge</div></div></div>
+      </div>
+
+      <div class="card-custom p-3">
+        <h6 class="fw-bold mb-2"><i class="fa-solid fa-clock-rotate-left text-info"></i> Dernières Transactions</h6>
+        <div id="recentTransactions" class="small"></div>
+      </div>
+    </section>
+
+    <!-- ============ APPROVISIONNEMENTS ============ -->
+    <section class="view" id="view-approv">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-sack-dollar text-primary"></i> Approvisionnements</h4><p class="text-muted small mb-0">Fonds reçus par agence (Kinshasa ou Cotonou)</p></div>
+        <button class="btn btn-wt" onclick="openApprovModal()"><i class="fa-solid fa-plus"></i> Ajouter</button>
+      </div>
+      <div class="card-custom p-3 mb-3">
+        <div class="row g-2 text-center">
+          <div class="col-6 col-md-3"><div class="kpi-label">Total Approvisionné</div><div class="h5 fw-bold text-success" id="totalApprov">$0</div></div>
+          <div class="col-6 col-md-3"><div class="kpi-label">Avances Mr Louis</div><div class="h5 fw-bold text-warning" id="totalLouis">$0</div></div>
+          <div class="col-6 col-md-3"><div class="kpi-label">Agence Kinshasa</div><div class="h5 fw-bold text-primary" id="totalApprovKin">$0</div></div>
+          <div class="col-6 col-md-3"><div class="kpi-label">Agence Cotonou</div><div class="h5 fw-bold text-info" id="totalApprovCtn">$0</div></div>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="table table-custom table-hover mb-0">
+          <thead><tr><th>Date</th><th>Libellé</th><th>Agence</th><th>Source</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="tbodyApprov"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ AGENCE KINSHASA (RDC) - ex Transferts KIN → CTN ============ -->
+    <section class="view" id="view-kin-ctn">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-building-columns text-success"></i> AGENCE KINSHASA (RDC)</h4><p class="text-muted small mb-0">Transferts reçus de Kinshasa vers Cotonou</p></div>
+        <button class="btn btn-wt" onclick="openModal('modalKinCtn')"><i class="fa-solid fa-plus"></i> Nouveau</button>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Reçu</div><div class="h6 fw-bold text-success" id="kinCtn-received">$0</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Commission</div><div class="h6 fw-bold text-primary" id="kinCtn-com">$0</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Servi</div><div class="h6 fw-bold text-info" id="kinCtn-served">$0</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Reste</div><div class="h6 fw-bold text-danger" id="kinCtn-remaining">$0</div></div></div>
+      </div>
+      <!-- FILTRES (ajout) -->
+      <div class="filter-bar">
+        <div class="btn-group btn-group-sm" id="kinCtn-filters" role="group">
+          <button type="button" class="btn btn-outline-success active" data-filter="all" onclick="setKinCtnFilter('all')">Toutes les transactions</button>
+          <button type="button" class="btn btn-outline-success" data-filter="envois" onclick="setKinCtnFilter('envois')">Envois reçus</button>
+          <button type="button" class="btn btn-outline-success" data-filter="retraits" onclick="setKinCtnFilter('retraits')">État des retraits</button>
+        </div>
+        <input type="text" id="kinCtn-search" class="form-control form-control-sm" placeholder="🔍 Rechercher code / nom..." oninput="renderKinCtn()">
+      </div>
+      <div class="table-container">
+        <table class="table table-custom table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Heure</th>
+              <th>Code</th>
+              <th>Expéditeur</th>
+              <th>Bénéficiaire</th>
+              <th>Reçu</th>
+              <th>Com.</th>
+              <th>Servi</th>
+              <th>Reste</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyKinCtn"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ AGENCE COTONOU (BÉNIN) - ex Transferts CTN → KIN ============ -->
+    <section class="view" id="view-ctn-kin">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-building text-info"></i> AGENCE COTONOU (BÉNIN)</h4><p class="text-muted small mb-0">Transferts reçus de Cotonou vers Kinshasa</p></div>
+        <button class="btn btn-wt" onclick="openModal('modalCtnKin')"><i class="fa-solid fa-plus"></i> Nouveau</button>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Reçu</div><div class="h6 fw-bold text-success" id="ctnKin-received">$0</div></div></div>
+        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Commission</div><div class="h6 fw-bold text-primary" id="ctnKin-com">$0</div></div></div>
+        <div class="col-4"><div class="kpi-card"><div class="kpi-label">À Servir</div><div class="h6 fw-bold text-info" id="ctnKin-serve">$0</div></div></div>
+      </div>
+      <!-- FILTRES (ajout) -->
+      <div class="filter-bar">
+        <div class="btn-group btn-group-sm" id="ctnKin-filters" role="group">
+          <button type="button" class="btn btn-outline-info active" data-filter="all" onclick="setCtnKinFilter('all')">Toutes les transactions</button>
+          <button type="button" class="btn btn-outline-info" data-filter="envois" onclick="setCtnKinFilter('envois')">Envois reçus</button>
+          <button type="button" class="btn btn-outline-info" data-filter="retraits" onclick="setCtnKinFilter('retraits')">État des retraits</button>
+        </div>
+        <input type="text" id="ctnKin-search" class="form-control form-control-sm" placeholder="🔍 Rechercher code / nom..." oninput="renderCtnKin()">
+      </div>
+      <div class="table-container">
+        <table class="table table-custom table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Heure</th>
+              <th>Code</th>
+              <th>Expéditeur</th>
+              <th>Bénéficiaire</th>
+              <th>Reçu</th>
+              <th>Com.</th>
+              <th>Servi</th>
+              <th>Reste</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyCtnKin"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ REPORT DE CODES ============ -->
+    <section class="view" id="view-report">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left text-warning"></i> Codes Reportés</h4><p class="text-muted small mb-0">Suivi des dettes clients historiques</p></div>
+        <button class="btn btn-wt" onclick="openModal('modalReport')"><i class="fa-solid fa-plus"></i> Ajouter</button>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Total Dû</div><div class="h6 fw-bold text-danger" id="report-total">$0</div></div></div>
+        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Servi</div><div class="h6 fw-bold text-success" id="report-served">$0</div></div></div>
+        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Reste</div><div class="h6 fw-bold text-warning" id="report-remaining">$0</div></div></div>
+      </div>
+      <div class="table-container">
+        <table class="table table-custom table-hover mb-0">
+          <thead><tr><th>Date Réception</th><th>Bénéficiaire</th><th>Reste à servir</th><th>Montant servi</th><th>Écart</th><th></th></tr></thead>
+          <tbody id="tbodyReport"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ SORTIES CTN ============ -->
+    <section class="view" id="view-sortie-ctn">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-danger"></i> Sorties de Fonds CTN</h4><p class="text-muted small mb-0">Dépenses opérationnelles Cotonou</p></div>
+        <button class="btn btn-wt" onclick="openModal('modalSortieCtn')"><i class="fa-solid fa-plus"></i> Ajouter</button>
+      </div>
+      <div class="kpi-card mb-3"><div class="kpi-label">Total Dépenses CTN</div><div class="h5 fw-bold text-danger" id="totalSortieCtn">$0</div></div>
+      <div class="table-container">
+        <table class="table table-custom table-hover mb-0">
+          <thead><tr><th>Date</th><th>Libellé</th><th>Agent</th><th>Montant</th><th></th></tr></thead>
+          <tbody id="tbodySortieCtn"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ SORTIES KIN ============ -->
+    <section class="view" id="view-sortie-kin">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-file-invoice-dollar text-danger"></i> Sorties de Fonds KIN</h4><p class="text-muted small mb-0">Dépenses et transferts vers Cotonou</p></div>
+        <button class="btn btn-wt" onclick="openModal('modalSortieKin')"><i class="fa-solid fa-plus"></i> Ajouter</button>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><div class="kpi-card"><div class="kpi-label">Dépenses</div><div class="h6 fw-bold text-danger" id="totalDepKin">$0</div></div></div>
+        <div class="col-6"><div class="kpi-card"><div class="kpi-label">Transferts vers CTN</div><div class="h6 fw-bold text-warning" id="totalTransfKin">$0</div></div></div>
+      </div>
+      <div class="table-container">
+        <table class="table table-custom table-hover mb-0">
+          <thead><tr><th>Date</th><th>Libellé</th><th>Dépense</th><th>Transfert</th><th>Agent</th><th></th></tr></thead>
+          <tbody id="tbodySortieKin"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ SITUATION DÉTAILLÉE ============ -->
+    <section class="view" id="view-situation">
+      <h4 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie text-primary"></i> Situation Détaillée</h4>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card-custom p-3">
+            <h5 class="fw-bold text-success"><i class="fa-solid fa-building"></i> COTONOU</h5>
+            <table class="table table-sm mb-0">
+              <tr><td>Solde initial</td><td class="text-end fw-bold" id="sit-ctn-init">$0</td></tr>
+              <tr><td>Approvisionnements</td><td class="text-end fw-bold text-success" id="sit-ctn-app">$0</td></tr>
+              <tr><td>Entrées de fonds (Envois reçus)</td><td class="text-end fw-bold text-success" id="sit-ctn-ent">$0</td></tr>
+              <tr class="table-light"><td class="fw-bold">Sous-total entrées</td><td class="text-end fw-bold" id="sit-ctn-sub1">$0</td></tr>
+              <tr><td>Codes servis (Retraits faits)</td><td class="text-end fw-bold text-danger" id="sit-ctn-serv">$0</td></tr>
+              <tr><td>Codes en attente (Retraits en attente)</td><td class="text-end fw-bold text-warning" id="sit-ctn-att">$0</td></tr>
+              <tr><td>Sorties de fonds</td><td class="text-end fw-bold text-danger" id="sit-ctn-sort">$0</td></tr>
+              <tr><td>Commissions</td><td class="text-end fw-bold text-primary" id="sit-ctn-com">$0</td></tr>
+              <tr class="table-success"><td class="fw-bold">MONTANT RESTANT</td><td class="text-end fw-bold fs-5" id="sit-ctn-rest">$0</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-custom p-3">
+            <h5 class="fw-bold text-warning"><i class="fa-solid fa-city"></i> KINSHASA</h5>
+            <table class="table table-sm mb-0">
+              <tr><td>Solde initial</td><td class="text-end fw-bold" id="sit-kin-init">$0</td></tr>
+              <tr><td>Approvisionnements</td><td class="text-end fw-bold text-success" id="sit-kin-app">$0</td></tr>
+              <tr><td>Entrées de fonds (Envois reçus)</td><td class="text-end fw-bold text-success" id="sit-kin-ent">$0</td></tr>
+              <tr class="table-light"><td class="fw-bold">Sous-total entrées</td><td class="text-end fw-bold" id="sit-kin-sub1">$0</td></tr>
+              <tr><td>Codes servis (Retraits faits)</td><td class="text-end fw-bold text-danger" id="sit-kin-serv">$0</td></tr>
+              <tr><td>Codes en attente (Retraits en attente)</td><td class="text-end fw-bold text-warning" id="sit-kin-att">$0</td></tr>
+              <tr><td>Transferts vers CTN</td><td class="text-end fw-bold text-danger" id="sit-kin-transf">$0</td></tr>
+              <tr><td>Dépenses KIN</td><td class="text-end fw-bold text-danger" id="sit-kin-dep">$0</td></tr>
+              <tr><td>Commissions</td><td class="text-end fw-bold text-primary" id="sit-kin-com">$0</td></tr>
+              <tr class="table-warning"><td class="fw-bold">MONTANT RESTANT</td><td class="text-end fw-bold fs-5" id="sit-kin-rest">$0</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- ===== SYNTHÈSE DES DEUX GUICHETS (ajout) ===== -->
+        <div class="col-12">
+          <div class="card-custom p-3">
+            <h5 class="fw-bold text-primary"><i class="fa-solid fa-layer-group"></i> SYNTHÈSE GLOBALE — COTONOU + KINSHASA</h5>
+            <table class="table table-sm mb-0">
+              <tr><td>Solde initial</td><td class="text-end fw-bold" id="sit-synth-init">$0</td></tr>
+              <tr><td>Approvisionnements</td><td class="text-end fw-bold text-success" id="sit-synth-app">$0</td></tr>
+              <tr><td>Entrées de fonds (Envois reçus)</td><td class="text-end fw-bold text-success" id="sit-synth-ent">$0</td></tr>
+              <tr class="table-light"><td class="fw-bold">Sous-total entrées</td><td class="text-end fw-bold" id="sit-synth-sub1">$0</td></tr>
+              <tr><td>Codes servis (Retraits faits)</td><td class="text-end fw-bold text-danger" id="sit-synth-serv">$0</td></tr>
+              <tr><td>Codes en attente (Retraits en attente)</td><td class="text-end fw-bold text-warning" id="sit-synth-att">$0</td></tr>
+              <tr><td>Sorties de fonds</td><td class="text-end fw-bold text-danger" id="sit-synth-sort">$0</td></tr>
+              <tr><td>Commissions</td><td class="text-end fw-bold text-primary" id="sit-synth-com">$0</td></tr>
+              <tr class="table-primary"><td class="fw-bold">MONTANT RESTANT</td><td class="text-end fw-bold fs-5" id="sit-synth-rest">$0</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card-custom p-3 mt-3">
+        <h6 class="fw-bold"><i class="fa-solid fa-sliders"></i> Paramètres de Situation</h6>
+        <div class="row g-2">
+          <div class="col-md-6"><label class="form-label">Solde initial CTN ($)</label><input type="number" class="form-control" id="initCtn" onchange="saveSettings()"></div>
+          <div class="col-md-6"><label class="form-label">Solde initial KIN ($)</label><input type="number" class="form-control" id="initKin" onchange="saveSettings()"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SOLDE & MARGE ============ -->
+    <section class="view" id="view-solde">
+      <h4 class="fw-bold mb-3"><i class="fa-solid fa-scale-balanced text-success"></i> Compte de Résultat & Marge</h4>
+      <div class="card-custom p-3 mb-3">
+        <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-coins"></i> PRODUITS</h5>
+        <table class="table table-sm mb-0">
+          <tr><td>Commissions KIN→CTN</td><td class="text-end fw-bold text-success" id="res-com-kin">$0</td></tr>
+          <tr><td>Commissions CTN→KIN</td><td class="text-end fw-bold text-success" id="res-com-ctn">$0</td></tr>
+          <tr class="table-success"><td class="fw-bold fs-5">TOTAL PRODUITS</td><td class="text-end fw-bold fs-5" id="res-total-prod">$0</td></tr>
+        </table>
+      </div>
+      <div class="card-custom p-3 mb-3">
+        <h5 class="fw-bold text-danger mb-3"><i class="fa-solid fa-file-invoice-dollar"></i> CHARGES</h5>
+        <table class="table table-sm mb-0">
+          <tr><td>Sorties de fonds CTN</td><td class="text-end fw-bold text-danger" id="res-chg-ctn">$0</td></tr>
+          <tr><td>Sorties de fonds KIN (dépenses)</td><td class="text-end fw-bold text-danger" id="res-chg-kin">$0</td></tr>
+          <tr class="table-danger"><td class="fw-bold fs-5">TOTAL CHARGES</td><td class="text-end fw-bold fs-5" id="res-total-chg">$0</td></tr>
+        </table>
+      </div>
+      <div class="card-custom p-3 mb-3" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff;">
+        <h5 class="fw-bold mb-2" style="color:rgba(255,255,255,.9);"><i class="fa-solid fa-chart-line"></i> MARGE NETTE</h5>
+        <div style="font-size:2rem; font-weight:900;" id="res-margin">$0</div>
+        <hr style="border-color:rgba(255,255,255,.3);">
+        <div class="row">
+          <div class="col-6"><small>Taux moyen FCFA/$</small><input type="number" class="form-control form-control-sm mt-1" id="tauxMoyen" value="" onchange="renderSolde()"></div>
+          <div class="col-6"><small>Marge en FCFA</small><div class="h5 fw-bold mb-0" id="res-margin-fcfa">0 FCFA</div></div>
+        </div>
+      </div>
+      <div class="card-custom p-3">
+        <h6 class="fw-bold"><i class="fa-solid fa-lightbulb text-warning"></i> Indicateurs Clés</h6>
+        <div class="row g-2 text-center">
+          <div class="col-6 col-md-3"><div class="kpi-label">Nb Transferts KIN→CTN</div><div class="h5 fw-bold" id="res-nb-kin">0</div></div>
+          <div class="col-6 col-md-3"><div class="kpi-label">Nb Transferts CTN→KIN</div><div class="h5 fw-bold" id="res-nb-ctn">0</div></div>
+          <div class="col-6 col-md-3"><div class="kpi-label">Taux de Marge</div><div class="h5 fw-bold text-success" id="res-rate">0%</div></div>
+          <div class="col-6 col-md-3"><div class="kpi-label">Commission Moyenne</div><div class="h5 fw-bold text-primary" id="res-avg-com">$0</div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+<footer>
+    <div class="fw-bold mb-1">AFRI LINK LEDGER <span class="text-success">System</span></div>
+    <div class="small text-muted mb-1">Concepteur : <strong class="text-dark">Atizoun Plateny AMOUSSOU</strong></div>
+    <div class="small text-muted">
+        <i class="fa-solid fa-envelope me-1"></i>atizoun@gmail.com &nbsp;|&nbsp; 
+        <i class="fa-solid fa-phone me-1"></i>01 97 74 40 35
+    </div>
+</footer>
+</div>
+
+<!-- ============ MODALS ============ -->
+
+<!-- Modal Approvisionnement (mise à jour : agence + source dynamique + solde temps réel) -->
+<div class="modal fade" id="modalApprov" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="fa-solid fa-sack-dollar"></i> Approvisionnement</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="approv-id">
+    <div class="mb-2">
+      <label class="form-label">Agence destinataire <span class="text-danger">*</span></label>
+      <select class="form-select" id="approv-agency" onchange="calcApprovBalance()">
+        <option value="">— Choisir l'agence —</option>
+        <option value="kin">🏛️ AGENCE KINSHASA (RDC)</option>
+        <option value="ctn">🏛️ AGENCE COTONOU (BÉNIN)</option>
+      </select>
+    </div>
+    <div class="mb-2"><label class="form-label">Date</label><input type="date" class="form-control" id="approv-date"></div>
+    <div class="mb-2"><label class="form-label">Libellé</label><input type="text" class="form-control" id="approv-label" value=""></div>
+    <div class="mb-2">
+      <label class="form-label">Source</label>
+      <div class="input-group">
+        <select class="form-select" id="approv-source"></select>
+        <button class="btn btn-outline-success" type="button" onclick="addNewSource()" title="Ajouter une nouvelle source"><i class="fa-solid fa-plus"></i></button>
+      </div>
+    </div>
+    <div class="mb-2"><label class="form-label">Montant ($)</label><input type="number" step="0.01" class="form-control" id="approv-amount" oninput="calcApprovBalance()"></div>
+    <div class="mb-2"><label class="form-label">Statut</label><select class="form-select" id="approv-status"><option value="Reçu">Reçu</option><option value="Remboursé">Remboursé (Mr Louis)</option></select></div>
+    <div id="approv-balance-info" style="display:none;"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveApprov()">Enregistrer</button></div>
+</div></div></div>
+
+<!-- Modal KIN→CTN -->
+<div class="modal fade" id="modalKinCtn" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transfert KIN → CTN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="kc-id">
+    <div class="row g-2">
+      <div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" id="kc-date"></div>
+      <div class="col-6"><label class="form-label">Heure</label><input type="time" class="form-control" id="kc-time"></div>
+    </div>
+    <div class="mb-2 mt-2"><label class="form-label">Taux du jour (FCFA/$)</label><input type="number" class="form-control" id="kc-taux" value=""></div>
+    <div class="mb-2"><label class="form-label">Montant Reçu ($)</label><input type="number" step="0.01" class="form-control" id="kc-received" oninput="calcKinCtn()"></div>
+    <div class="mb-2"><label class="form-label">Commission ($)</label><input type="number" step="0.01" class="form-control" id="kc-com" oninput="calcKinCtn()"></div>
+    <div class="mb-2"><label class="form-label">Montant à servir ($)</label><input type="number" step="0.01" class="form-control" id="kc-serve" readonly></div>
+    <div class="mb-2"><label class="form-label">Montant servi ($)</label><input type="number" step="0.01" class="form-control" id="kc-served" oninput="calcKinCtn()"></div>
+    <div class="mb-2"><label class="form-label">Reste à servir ($)</label><input type="number" step="0.01" class="form-control bg-warning bg-opacity-10" id="kc-remaining" readonly></div>
+    <div class="mb-2"><label class="form-label">Bénéficiaire</label><input type="text" class="form-control" id="kc-benef"></div>
+    <div class="mb-2"><label class="form-label">Téléphone</label><input type="text" class="form-control" id="kc-phone"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveKinCtn()">Enregistrer</button></div>
+</div></div></div>
+
+<!-- Modal CTN→KIN -->
+<div class="modal fade" id="modalCtnKin" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-info text-white"><h5 class="modal-title"><i class="fa-solid fa-arrow-left"></i> Transfert CTN → KIN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="ck-id">
+    <div class="row g-2">
+      <div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" id="ck-date"></div>
+      <div class="col-6"><label class="form-label">Heure</label><input type="time" class="form-control" id="ck-time"></div>
+    </div>
+    <div class="mb-2 mt-2"><label class="form-label">Taux du jour</label><input type="number" class="form-control" id="ck-taux" value=""></div>
+    <div class="mb-2"><label class="form-label">Expéditeur</label><input type="text" class="form-control" id="ck-exp"></div>
+    <div class="mb-2"><label class="form-label">Montant Reçu ($)</label><input type="number" step="0.01" class="form-control" id="ck-received" oninput="calcCtnKin()"></div>
+    <div class="mb-2"><label class="form-label">Commission ($)</label><input type="number" step="0.01" class="form-control" id="ck-com" oninput="calcCtnKin()"></div>
+    <div class="mb-2"><label class="form-label">Montant à servir ($)</label><input type="number" step="0.01" class="form-control" id="ck-serve" readonly></div>
+    <div class="mb-2"><label class="form-label">Téléphone Bénéficiaire</label><input type="text" class="form-control" id="ck-phone"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveCtnKin()">Enregistrer</button></div>
+</div></div></div>
+
+<!-- Modal Report -->
+<div class="modal fade" id="modalReport" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-warning text-dark"><h5 class="modal-title"><i class="fa-solid fa-clock-rotate-left"></i> Code Reporté</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="rep-id">
+    <div class="mb-2"><label class="form-label">Date de réception</label><input type="date" class="form-control" id="rep-date"></div>
+    <div class="mb-2"><label class="form-label">Bénéficiaire</label><input type="text" class="form-control" id="rep-benef"></div>
+    <div class="mb-2"><label class="form-label">Reste à servir initial ($)</label><input type="number" step="0.01" class="form-control" id="rep-total"></div>
+    <div class="mb-2"><label class="form-label">Montant servi ($)</label><input type="number" step="0.01" class="form-control" id="rep-served" value="0"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveReport()">Enregistrer</button></div>
+</div></div></div>
+
+<!-- Modal Sortie CTN -->
+<div class="modal fade" id="modalSortieCtn" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="fa-solid fa-receipt"></i> Sortie Fonds CTN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="sc-id">
+    <div class="mb-2"><label class="form-label">Date</label><input type="date" class="form-control" id="sc-date"></div>
+    <div class="mb-2"><label class="form-label">Libellé</label><input type="text" class="form-control" id="sc-label"></div>
+    <div class="mb-2"><label class="form-label">Montant ($)</label><input type="number" step="0.01" class="form-control" id="sc-amount"></div>
+    <div class="mb-2"><label class="form-label">Agent</label><input type="text" class="form-control" id="sc-agent"></div>
+    <div class="mb-2"><label class="form-label">Observation</label><textarea class="form-control" id="sc-obs" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveSortieCtn()">Enregistrer</button></div>
+</div></div></div>
+
+<!-- Modal Sortie KIN -->
+<div class="modal fade" id="modalSortieKin" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="fa-solid fa-file-invoice-dollar"></i> Sortie Fonds KIN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="sk-id">
+    <div class="mb-2"><label class="form-label">Date</label><input type="date" class="form-control" id="sk-date"></div>
+    <div class="mb-2"><label class="form-label">Libellé</label><input type="text" class="form-control" id="sk-label"></div>
+    <div class="row g-2">
+      <div class="col-6"><label class="form-label">Dépense ($)</label><input type="number" step="0.01" class="form-control" id="sk-dep" value="0"></div>
+      <div class="col-6"><label class="form-label">Transfert vers CTN ($)</label><input type="number" step="0.01" class="form-control" id="sk-transf" value="0"></div>
+    </div>
+    <div class="mb-2 mt-2"><label class="form-label">Agent</label><input type="text" class="form-control" id="sk-agent"></div>
+    <div class="mb-2"><label class="form-label">Observation</label><textarea class="form-control" id="sk-obs" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveSortieKin()">Enregistrer</button></div>
+</div></div></div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3797xa8XdDiTcOKLxOTkaJ1AfH5cnJaY",
+    authDomain: "imany-transfert.firebaseapp.com",
+    databaseURL: "https://imany-transfert-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "imany-transfert",
+    storageBucket: "imany-transfert.firebasestorage.app",
+    messagingSenderId: "425059145846",
+    appId: "1:425059145846:web:c0e71f720e80104ebc2757"
+  };
+
+  let useFirebase = true;
+  let db = null;
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    console.log("✅ Firebase Realtime Database connecté");
+  } catch (e) {
+    console.error("❌ Erreur connexion Firebase:", e);
+    useFirebase = false;
+  }
+
+  window.useFirebase = useFirebase;
+  window.db = db;
+  window.fbUtils = { ref, set, remove, onValue, update };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* =========================================================
+   MONEY TRANSFERT PWA - LOGIQUE MÉTIER
+   ========================================================= */
+
+// ----- STORAGE & SYNC -----
+const collections = ['approv', 'kinCtn', 'ctnKin', 'report', 'sortieCtn', 'sortieKin'];
+
+let state = {
+  approv: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_approv')) || []),
+  kinCtn: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_kinCtn')) || []),
+  ctnKin: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_ctnKin')) || []),
+  report: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_report')) || []),
+  sortieCtn: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieCtn')) || []),
+  sortieKin: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieKin')) || []),
+  settings: window.useFirebase ? {initCtn:0, initKin:0, tauxMoyen:0, customSources:[]} : (JSON.parse(localStorage.getItem('mt_settings')) || {initCtn:0, initKin:0, tauxMoyen:0, customSources:[]})
+};
+
+function syncItem(collection, data) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
+    return;
+  }
+  const { id, ...rest } = data;
+  window.fbUtils.set(window.fbUtils.ref(window.db, `${collection}/${id}`), rest).catch(e => console.error("Sync error:", e));
+}
+
+function deleteItem(collection, id) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
+    return;
+  }
+  window.fbUtils.remove(window.fbUtils.ref(window.db, `${collection}/${id}`)).catch(e => console.error("Delete error:", e));
+}
+
+function syncSettings(settings) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_settings', JSON.stringify(settings));
+    return;
+  }
+  window.fbUtils.set(window.fbUtils.ref(window.db, 'settings'), settings).catch(e => console.error("Sync settings error:", e));
+}
+
+function setupRealtimeListeners() {
+  if (!window.useFirebase || !window.db) return;
+  
+  collections.forEach(col => {
+    window.fbUtils.onValue(window.fbUtils.ref(window.db, col), (snapshot) => {
+      const data = snapshot.val();
+      state[col] = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+      renderAll();
+    });
+  });
+
+  window.fbUtils.onValue(window.fbUtils.ref(window.db, 'settings'), (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      state.settings = data;
+      if (!Array.isArray(state.settings.customSources)) state.settings.customSources = [];
+      if ($('initCtn')) $('initCtn').value = state.settings.initCtn || 0;
+      if ($('initKin')) $('initKin').value = state.settings.initKin || 0;
+      if ($('tauxMoyen')) $('tauxMoyen').value = state.settings.tauxMoyen || 0;
+      renderAll();
+    }
+  });
+}
+
+// ----- UTILS -----
+const $ = id => document.getElementById(id);
+const fmt = n => '$'+(Number(n)||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const uid = () => Date.now().toString(36)+Math.random().toString(36).substr(2,5);
+const today = () => new Date().toISOString().split('T')[0];
+const escapeHtml = (s) => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg, type='success') {
+  const colors = {success:'bg-success',danger:'bg-danger',warning:'bg-warning',info:'bg-info'};
+  const el = document.createElement('div');
+  el.className = `toast show ${colors[type]} text-white`;
+  el.innerHTML = `<div class="toast-body d-flex justify-content-between align-items-center">${msg}<button class="btn-close btn-close-white ms-2" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+  $('toastContainer').appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+// ----- NAVIGATION -----
+function toggleSidebar(open) {
+  $('sidebar').classList.toggle('open', open);
+  $('overlay').classList.toggle('show', open);
+}
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const nav = document.querySelector(`.nav-item[data-view="${name}"]`);
+  if(nav) nav.classList.add('active');
+  toggleSidebar(false);
+  renderAll();
+}
+function openModal(id) { new bootstrap.Modal($(id)).show(); }
+function closeModal(id) { bootstrap.Modal.getInstance($(id))?.hide(); }
+
+/* =========================================================
+   APPROVISIONNEMENTS — Sources dynamiques & solde temps réel
+   Solde Approv. = (Total Approv + Total Reçu) - Total Servi
+   ========================================================= */
+const DEFAULT_SOURCES = ['Kinshasa', 'Mr Louis'];
+
+function getSources() {
+  const custom = (state.settings && Array.isArray(state.settings.customSources)) ? state.settings.customSources : [];
+  const all = [...DEFAULT_SOURCES];
+  custom.forEach(s => { if (s && !all.includes(s)) all.push(s); });
+  return all;
+}
+
+function renderApprovSourceOptions(selected) {
+  const sel = $('approv-source');
+  if (!sel) return;
+  const sources = getSources();
+  sel.innerHTML = sources.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  if (selected && sources.includes(selected)) sel.value = selected;
+  else sel.selectedIndex = 0;
+}
+
+function addNewSource() {
+  const raw = prompt('Nom de la nouvelle source :');
+  if (raw === null) return;
+  const name = raw.trim();
+  if (!name) return;
+  const existing = getSources();
+  if (existing.includes(name)) {
+    toast('Cette source existe déjà', 'warning');
+    renderApprovSourceOptions(name);
+    return;
+  }
+  if (!Array.isArray(state.settings.customSources)) state.settings.customSources = [];
+  state.settings.customSources.push(name);
+  syncSettings(state.settings);
+  renderApprovSourceOptions(name);
+  toast('Source « ' + name + ' » créée', 'success');
+}
+
+function agencyLabel(a) {
+  if (a === 'kin') return 'AGENCE KINSHASA (RDC)';
+  if (a === 'ctn') return 'AGENCE COTONOU (BÉNIN)';
+  return '—';
+}
+
+function agencyBadge(a) {
+  if (a === 'kin') return '<span class="badge bg-success"><i class="fa-solid fa-building-columns me-1"></i>Kinshasa</span>';
+  if (a === 'ctn') return '<span class="badge bg-info text-dark"><i class="fa-solid fa-building me-1"></i>Cotonou</span>';
+  return '<span class="badge bg-secondary">—</span>';
+}
+
+/* Total d'approvisionnement d'une agence (les enregistrements legacy sans agency sont comptés côté Cotonou) */
+function approvTotalForAgency(agency, excludeId) {
+  return state.approv.reduce((sum, a) => {
+    if (excludeId && a.id === excludeId) return sum;
+    const aAgency = a.agency || 'ctn';
+    return (aAgency === agency) ? sum + (a.amount || 0) : sum;
+  }, 0);
+}
+
+/* Totaux (Reçu / Servi) d'une agence — utilisés pour le Solde Approv. (mise à jour) */
+function agencyRecu(agency) {
+  const col = (agency === 'kin') ? state.kinCtn : state.ctnKin;
+  return col.reduce((s,t)=>s+(t.received||0),0);
+}
+function agencyServi(agency) {
+  const col = (agency === 'kin') ? state.kinCtn : state.ctnKin;
+  return col.reduce((s,t)=>s+(t.served||0),0);
+}
+
+/* Solde Approv. agence = (Total Approv + Total Reçu) - Total Servi (mise à jour) */
+function approvSoldeForAgency(agency, excludeApprovId) {
+  const approv = approvTotalForAgency(agency, excludeApprovId);
+  const recu   = agencyRecu(agency);
+  const servi  = agencyServi(agency);
+  return approv + recu - servi;
+}
+
+function openApprovModal() {
+  renderApprovSourceOptions();
+  const info = $('approv-balance-info');
+  if (info) { info.style.display = 'none'; info.innerHTML = ''; }
+  if ($('approv-date') && !$('approv-date').value) $('approv-date').value = today();
+  openModal('modalApprov');
+}
+
+/* Solde temps réel affiché dans la modale (mise à jour : formule (Approv + Reçu) - Servi) */
+function calcApprovBalance() {
+  const info = $('approv-balance-info');
+  if (!info) return;
+  const agency = $('approv-agency').value;
+  if (!agency) { info.style.display = 'none'; info.innerHTML = ''; return; }
+  const amount = parseFloat($('approv-amount').value) || 0;
+  const editingId = $('approv-id').value || null;
+
+  /* Solde actuel = (Approv + Reçu) - Servi (en excluant l'enregistrement en cours d'édition) */
+  const approv   = approvTotalForAgency(agency, editingId);
+  const recu     = agencyRecu(agency);
+  const servi    = agencyServi(agency);
+  const soldeActuel = approv + recu - servi;
+  const soldeApres  = soldeActuel + amount;
+
+  const lbl = agencyLabel(agency);
+  info.style.display = 'block';
+  info.className = 'alert alert-info py-2 px-3 small mb-0 mt-2';
+  info.innerHTML = `
+    <div class="d-flex justify-content-between"><span>Solde actuel — ${lbl}</span><strong>${fmt(soldeActuel)}</strong></div>
+    <div class="d-flex justify-content-between border-top pt-1 mt-1"><span>Après cet approvisionnement</span><strong class="text-success">${fmt(soldeApres)}</strong></div>
+  `;
+}
+
+// ----- APPROVISIONNEMENTS (fonctions) -----
+function saveApprov() {
+  const id = $('approv-id').value;
+  const agency = $('approv-agency').value;
+  if (!agency) return toast('Sélectionnez une agence', 'danger');
+  const data = {
+    id: id || uid(),
+    agency,
+    date: $('approv-date').value || today(),
+    label: $('approv-label').value,
+    source: $('approv-source').value,
+    amount: parseFloat($('approv-amount').value)||0,
+    status: $('approv-status').value
+  };
+  if(!data.amount) return toast('Montant requis','danger');
+  if(id) { const i = state.approv.findIndex(a=>a.id===id); if(i!==-1) state.approv[i]=data; }
+  else state.approv.push(data);
+  
+  syncItem('approv', data);
+  closeModal('modalApprov'); resetForm('approv');
+  const info = $('approv-balance-info'); if (info) { info.style.display='none'; info.innerHTML=''; }
+  renderAll(); toast('Approvisionnement enregistré');
+}
+function editApprov(id) {
+  const d = state.approv.find(a=>a.id===id);
+  renderApprovSourceOptions(d.source);
+  $('approv-id').value = d.id;
+  $('approv-agency').value = d.agency || '';
+  $('approv-date').value = d.date;
+  $('approv-label').value = d.label;
+  $('approv-amount').value = d.amount;
+  $('approv-status').value = d.status;
+  calcApprovBalance();
+  openModal('modalApprov');
+}
+function delApprov(id) {
+  if(!confirm('Supprimer cet approvisionnement ?')) return;
+  state.approv = state.approv.filter(a=>a.id!==id);
+  deleteItem('approv', id);
+  renderAll(); toast('Supprimé','warning');
+}
+function renderApprov() {
+  const tb = $('tbodyApprov');
+  if(!state.approv.length) { tb.innerHTML='<tr><td colspan="7" class="text-center text-muted py-3">Aucun approvisionnement</td></tr>'; }
+  else {
+    tb.innerHTML = state.approv.sort((a,b)=>b.date.localeCompare(a.date)).map(a=>`
+      <tr>
+        <td>${a.date}</td>
+        <td>${escapeHtml(a.label||'')}</td>
+        <td>${agencyBadge(a.agency)}</td>
+        <td><span class="badge bg-${a.source==='Mr Louis'?'warning':'primary'}">${escapeHtml(a.source||'')}</span></td>
+        <td class="fw-bold text-success">${fmt(a.amount)}</td>
+        <td><span class="badge bg-${a.status==='Remboursé'?'secondary':'success'}">${escapeHtml(a.status||'')}</span></td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary" onclick="editApprov('${a.id}')"><i class="fa-solid fa-edit"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="delApprov('${a.id}')"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>`).join('');
+  }
+  const totalAll = state.approv.reduce((s,a)=>s+a.amount,0);
+  const totalLouis = state.approv.filter(a=>a.source==='Mr Louis').reduce((s,a)=>s+a.amount,0);
+  const kinTotal = approvTotalForAgency('kin');
+  const ctnTotal = approvTotalForAgency('ctn');
+  $('totalApprov').textContent = fmt(totalAll);
+  $('totalLouis').textContent = fmt(totalLouis);
+  if ($('totalApprovKin')) $('totalApprovKin').textContent = fmt(kinTotal);
+  if ($('totalApprovCtn')) $('totalApprovCtn').textContent = fmt(ctnTotal);
+}
+
+// ----- KIN → CTN -----
+/* Filtre de statut pour le tableau KIN→CTN (ajout) */
+let kinCtnFilter = 'all';
+
+function setKinCtnFilter(f) {
+  kinCtnFilter = f;
+  document.querySelectorAll('#kinCtn-filters .btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderKinCtn();
+}
+
+function calcKinCtn() {
+  const r = parseFloat($('kc-received').value)||0;
+  const c = parseFloat($('kc-com').value)||0;
+  const s = parseFloat($('kc-served').value)||0;
+  $('kc-serve').value = (r-c).toFixed(2);
+  const toServe = r-c;
+  $('kc-remaining').value = (toServe-s).toFixed(2);
+}
+function saveKinCtn() {
+  const id = $('kc-id').value;
+  /* Préserver les champs enrichis (envoi depuis la page d'accueil) lors d'une édition (ajout) */
+  const existing = id ? state.kinCtn.find(a=>a.id===id) : null;
+  const data = {
+    id: id || uid(),
+    date: $('kc-date').value || today(),
+    time: $('kc-time').value,
+    taux: parseFloat($('kc-taux').value)||0,
+    received: parseFloat($('kc-received').value)||0,
+    commission: parseFloat($('kc-com').value)||0,
+    toServe: parseFloat($('kc-serve').value)||0,
+    served: parseFloat($('kc-served').value)||0,
+    remaining: parseFloat($('kc-remaining').value)||0,
+    benef: $('kc-benef').value,
+    phone: $('kc-phone').value,
+    sender: existing?.sender || '',
+    senderPhone: existing?.senderPhone || '',
+    code: existing?.code || '',
+    type: existing?.type || 'manuel'
+  };
+  if(!data.received) return toast('Montant requis','danger');
+  if(id) { const i = state.kinCtn.findIndex(a=>a.id===id); if(i!==-1) state.kinCtn[i]=data; }
+  else state.kinCtn.push(data);
+  
+  syncItem('kinCtn', data);
+  closeModal('modalKinCtn'); resetForm('kc');
+  renderAll(); toast('Transfert enregistré');
+}
+function editKinCtn(id) {
+  const d = state.kinCtn.find(a=>a.id===id);
+  $('kc-id').value=d.id; $('kc-date').value=d.date; $('kc-time').value=d.time;
+  $('kc-taux').value=d.taux; $('kc-received').value=d.received; $('kc-com').value=d.commission;
+  $('kc-served').value=d.served; $('kc-benef').value=d.benef; $('kc-phone').value=d.phone||'';
+  calcKinCtn(); openModal('modalKinCtn');
+}
+function delKinCtn(id) {
+  if(!confirm('Supprimer ce transfert ?')) return;
+  state.kinCtn = state.kinCtn.filter(a=>a.id!==id);
+  deleteItem('kinCtn', id);
+  renderAll(); toast('Supprimé','warning');
+}
+
+/* Petite aide pour afficher le statut d'un transfert (ajout) */
+function statusBadgeKinCtn(t) {
+  const toServe = t.toServe || 0;
+  const served  = t.served || 0;
+  const remaining = (t.remaining != null) ? t.remaining : (toServe - served);
+  if (served <= 0 && toServe > 0) return '<span class="badge bg-warning text-dark">En attente</span>';
+  if (remaining > 0)              return '<span class="badge bg-info text-dark">Partiel</span>';
+  if (toServe > 0)                return '<span class="badge bg-success">Servi</span>';
+  return '<span class="badge bg-secondary">—</span>';
+}
+
+function renderKinCtn() {
+  const tb = $('tbodyKinCtn');
+  const searchVal = ($('kinCtn-search')?.value || '').trim().toLowerCase();
+
+  let list = [...state.kinCtn].sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+
+  /* Filtre statut (ajout) */
+  if (kinCtnFilter === 'envois') {
+    // Envois reçus : enregistrements encore en attente de retrait
+    list = list.filter(t => (t.served || 0) === 0);
+  } else if (kinCtnFilter === 'retraits') {
+    // État des retraits : enregistrements ayant au moins un retrait effectué
+    list = list.filter(t => (t.served || 0) > 0);
+  }
+
+  /* Filtre texte (ajout du code et de l'expéditeur en plus du bénéficiaire) */
+  if (searchVal) {
+    list = list.filter(t =>
+      (t.benef||'').toLowerCase().includes(searchVal) ||
+      (t.sender||'').toLowerCase().includes(searchVal) ||
+      (t.code||'').toLowerCase().includes(searchVal)
+    );
+  }
+
+  if(!list.length) {
+    tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-3">Aucun transfert</td></tr>';
+  } else {
+    tb.innerHTML = list.map(t=>{
+      const toServe = t.toServe || 0;
+      const served  = t.served || 0;
+      const remaining = (t.remaining != null) ? t.remaining : (toServe - served);
+      const codeTxt = t.code ? escapeHtml(t.code) : '—';
+      const senderTxt = t.sender ? escapeHtml(t.sender) : '—';
+      const senderPhone = t.senderPhone ? escapeHtml(t.senderPhone) : '';
+      const benefTxt = escapeHtml(t.benef || '—');
+      const benefPhone = t.phone ? escapeHtml(t.phone) : '';
+      const badge = statusBadgeKinCtn(t);
+      return `
+        <tr>
+          <td>${t.date}</td>
+          <td class="small">${t.time||'-'}</td>
+          <td><span class="badge bg-secondary code-badge">${codeTxt}</span></td>
+          <td><span class="cell-name">${senderTxt}</span>${senderPhone?`<span class="cell-sub">${senderPhone}</span>`:''}</td>
+          <td><span class="cell-name">${benefTxt}</span>${benefPhone?`<span class="cell-sub">${benefPhone}</span>`:''}</td>
+          <td class="text-success">${fmt(t.received)}</td>
+          <td class="text-primary">${fmt(t.commission)}</td>
+          <td class="text-info">${fmt(served)}</td>
+          <td class="${remaining>0?'text-danger fw-bold':'text-muted'}">${fmt(remaining)}</td>
+          <td>${badge}</td>
+          <td class="text-end text-nowrap">
+            <button class="btn btn-sm btn-outline-primary" onclick="editKinCtn('${t.id}')"><i class="fa-solid fa-edit"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="delKinCtn('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+  const total = state.kinCtn;
+  $('kinCtn-received').textContent = fmt(total.reduce((s,t)=>s+t.received,0));
+  $('kinCtn-com').textContent = fmt(total.reduce((s,t)=>s+t.commission,0));
+  $('kinCtn-served').textContent = fmt(total.reduce((s,t)=>s+(t.served||0),0));
+  $('kinCtn-remaining').textContent = fmt(total.reduce((s,t)=>s+(t.remaining!=null?t.remaining:((t.toServe||0)-(t.served||0))),0));
+}
+
+// ----- CTN → KIN -----
+/* Filtre de statut pour le tableau CTN→KIN (ajout) */
+let ctnKinFilter = 'all';
+
+function setCtnKinFilter(f) {
+  ctnKinFilter = f;
+  document.querySelectorAll('#ctnKin-filters .btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderCtnKin();
+}
+
+function calcCtnKin() {
+  const r = parseFloat($('ck-received').value)||0;
+  const c = parseFloat($('ck-com').value)||0;
+  $('ck-serve').value = (r-c).toFixed(2);
+}
+function saveCtnKin() {
+  const id = $('ck-id').value;
+  /* Préserver les champs enrichis (envoi depuis la page d'accueil) lors d'une édition (ajout) */
+  const existing = id ? state.ctnKin.find(a=>a.id===id) : null;
+  const newToServe = parseFloat($('ck-serve').value)||0;
+  const data = {
+    id: id || uid(),
+    date: $('ck-date').value || today(),
+    time: $('ck-time').value,
+    taux: parseFloat($('ck-taux').value)||0,
+    exp: $('ck-exp').value,
+    received: parseFloat($('ck-received').value)||0,
+    commission: parseFloat($('ck-com').value)||0,
+    toServe: newToServe,
+    phone: $('ck-phone').value,
+    benef: existing?.benef || '',
+    sender: existing?.sender || $('ck-exp').value,
+    senderPhone: existing?.senderPhone || '',
+    code: existing?.code || '',
+    served: existing?.served || 0,
+    remaining: (existing?.remaining != null) ? existing.remaining : newToServe,
+    type: existing?.type || 'manuel'
+  };
+  if(!data.received) return toast('Montant requis','danger');
+  if(id) { const i = state.ctnKin.findIndex(a=>a.id===id); if(i!==-1) state.ctnKin[i]=data; }
+  else state.ctnKin.push(data);
+  
+  syncItem('ctnKin', data);
+  closeModal('modalCtnKin'); resetForm('ck');
+  renderAll(); toast('Transfert enregistré');
+}
+function editCtnKin(id) {
+  const d = state.ctnKin.find(a=>a.id===id);
+  $('ck-id').value=d.id; $('ck-date').value=d.date; $('ck-time').value=d.time;
+  $('ck-taux').value=d.taux; $('ck-exp').value=d.exp || d.sender || ''; $('ck-received').value=d.received;
+  $('ck-com').value=d.commission; $('ck-phone').value=d.phone||'';
+  calcCtnKin(); openModal('modalCtnKin');
+}
+function delCtnKin(id) {
+  if(!confirm('Supprimer ?')) return;
+  state.ctnKin = state.ctnKin.filter(a=>a.id!==id);
+  deleteItem('ctnKin', id);
+  renderAll(); toast('Supprimé','warning');
+}
+
+/* Petite aide pour afficher le statut d'un transfert (ajout) */
+function statusBadgeCtnKin(t) {
+  const toServe = t.toServe || 0;
+  const served  = t.served || 0;
+  const remaining = (t.remaining != null) ? t.remaining : (toServe - served);
+  if (served <= 0 && toServe > 0) return '<span class="badge bg-warning text-dark">En attente</span>';
+  if (remaining > 0)              return '<span class="badge bg-info text-dark">Partiel</span>';
+  if (toServe > 0)                return '<span class="badge bg-success">Servi</span>';
+  return '<span class="badge bg-secondary">—</span>';
+}
+
+function renderCtnKin() {
+  const tb = $('tbodyCtnKin');
+  const searchVal = ($('ctnKin-search')?.value || '').trim().toLowerCase();
+
+  let list = [...state.ctnKin].sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+
+  /* Filtre statut (ajout) */
+  if (ctnKinFilter === 'envois') {
+    list = list.filter(t => (t.served || 0) === 0);
+  } else if (ctnKinFilter === 'retraits') {
+    list = list.filter(t => (t.served || 0) > 0);
+  }
+
+  /* Filtre texte (ajout du code et du bénéficiaire en plus de l'expéditeur) */
+  if (searchVal) {
+    list = list.filter(t =>
+      (t.exp||'').toLowerCase().includes(searchVal) ||
+      (t.sender||'').toLowerCase().includes(searchVal) ||
+      (t.benef||'').toLowerCase().includes(searchVal) ||
+      (t.code||'').toLowerCase().includes(searchVal)
+    );
+  }
+
+  if(!list.length) {
+    tb.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-3">Aucun transfert</td></tr>';
+  } else {
+    tb.innerHTML = list.map(t=>{
+      const toServe = t.toServe || 0;
+      const served  = t.served || 0;
+      const remaining = (t.remaining != null) ? t.remaining : (toServe - served);
+      const codeTxt = t.code ? escapeHtml(t.code) : '—';
+      const senderName = t.exp || t.sender || '—';
+      const senderPhone = t.senderPhone ? escapeHtml(t.senderPhone) : '';
+      const benefTxt = t.benef ? escapeHtml(t.benef) : '—';
+      const benefPhone = t.phone ? escapeHtml(t.phone) : '';
+      const badge = statusBadgeCtnKin(t);
+      return `
+        <tr>
+          <td>${t.date}</td>
+          <td class="small">${t.time||'-'}</td>
+          <td><span class="badge bg-secondary code-badge">${codeTxt}</span></td>
+          <td><span class="cell-name">${escapeHtml(senderName)}</span>${senderPhone?`<span class="cell-sub">${senderPhone}</span>`:''}</td>
+          <td><span class="cell-name">${benefTxt}</span>${benefPhone?`<span class="cell-sub">${benefPhone}</span>`:''}</td>
+          <td class="text-success">${fmt(t.received)}</td>
+          <td class="text-primary">${fmt(t.commission)}</td>
+          <td class="text-info">${fmt(served)}</td>
+          <td class="${remaining>0?'text-danger fw-bold':'text-muted'}">${fmt(remaining)}</td>
+          <td>${badge}</td>
+          <td class="text-end text-nowrap">
+            <button class="btn btn-sm btn-outline-primary" onclick="editCtnKin('${t.id}')"><i class="fa-solid fa-edit"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="delCtnKin('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+  $('ctnKin-received').textContent = fmt(state.ctnKin.reduce((s,t)=>s+t.received,0));
+  $('ctnKin-com').textContent = fmt(state.ctnKin.reduce((s,t)=>s+t.commission,0));
+  $('ctnKin-serve').textContent = fmt(state.ctnKin.reduce((s,t)=>s+t.toServe,0));
+}
+
+// ----- REPORT -----
+function saveReport() {
+  const id = $('rep-id').value;
+  const data = {
+    id: id || uid(),
+    date: $('rep-date').value || today(),
+    benef: $('rep-benef').value,
+    total: parseFloat($('rep-total').value)||0,
+    served: parseFloat($('rep-served').value)||0
+  };
+  if(!data.total) return toast('Montant requis','danger');
+  if(id) { const i = state.report.findIndex(a=>a.id===id); if(i!==-1) state.report[i]=data; }
+  else state.report.push(data);
+  
+  syncItem('report', data);
+  closeModal('modalReport'); resetForm('rep');
+  renderAll(); toast('Code reporté enregistré');
+}
+function editReport(id) {
+  const d = state.report.find(a=>a.id===id);
+  $('rep-id').value=d.id; $('rep-date').value=d.date; $('rep-benef').value=d.benef;
+  $('rep-total').value=d.total; $('rep-served').value=d.served;
+  openModal('modalReport');
+}
+function delReport(id) {
+  if(!confirm('Supprimer ?')) return;
+  state.report = state.report.filter(a=>a.id!==id);
+  deleteItem('report', id);
+  renderAll(); toast('Supprimé','warning');
+}
+function renderReport() {
+  const tb = $('tbodyReport');
+  if(!state.report.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucun code reporté</td></tr>';
+  else tb.innerHTML = state.report.sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
+    const ecart = r.total - r.served;
+    return `<tr>
+      <td>${r.date}</td>
+      <td class="fw-bold">${r.benef}</td>
+      <td class="text-danger">${fmt(r.total)}</td>
+      <td class="text-success">${fmt(r.served)}</td>
+      <td class="${ecart>0?'text-warning fw-bold':'text-success'}">${fmt(ecart)}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary" onclick="editReport('${r.id}')"><i class="fa-solid fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delReport('${r.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+  const tot = state.report.reduce((s,r)=>s+r.total,0);
+  const ser = state.report.reduce((s,r)=>s+r.served,0);
+  $('report-total').textContent = fmt(tot);
+  $('report-served').textContent = fmt(ser);
+  $('report-remaining').textContent = fmt(tot-ser);
+}
+
+// ----- SORTIES CTN -----
+function saveSortieCtn() {
+  const id = $('sc-id').value;
+  const data = {
+    id: id || uid(),
+    date: $('sc-date').value || today(),
+    label: $('sc-label').value,
+    amount: parseFloat($('sc-amount').value)||0,
+    agent: $('sc-agent').value,
+    obs: $('sc-obs').value
+  };
+  if(!data.amount) return toast('Montant requis','danger');
+  if(id) { const i = state.sortieCtn.findIndex(a=>a.id===id); if(i!==-1) state.sortieCtn[i]=data; }
+  else state.sortieCtn.push(data);
+  
+  syncItem('sortieCtn', data);
+  closeModal('modalSortieCtn'); resetForm('sc');
+  renderAll(); toast('Sortie enregistrée');
+}
+function editSortieCtn(id) {
+  const d = state.sortieCtn.find(a=>a.id===id);
+  $('sc-id').value=d.id; $('sc-date').value=d.date; $('sc-label').value=d.label;
+  $('sc-amount').value=d.amount; $('sc-agent').value=d.agent; $('sc-obs').value=d.obs||'';
+  openModal('modalSortieCtn');
+}
+function delSortieCtn(id) {
+  if(!confirm('Supprimer ?')) return;
+  state.sortieCtn = state.sortieCtn.filter(a=>a.id!==id);
+  deleteItem('sortieCtn', id);
+  renderAll(); toast('Supprimé','warning');
+}
+function renderSortieCtn() {
+  const tb = $('tbodySortieCtn');
+  if(!state.sortieCtn.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucune sortie</td></tr>';
+  else tb.innerHTML = state.sortieCtn.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`
+    <tr>
+      <td>${s.date}</td>
+      <td>${s.label}</td>
+      <td class="small">${s.agent}</td>
+      <td class="fw-bold text-danger">${fmt(s.amount)}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary" onclick="editSortieCtn('${s.id}')"><i class="fa-solid fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delSortieCtn('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+  $('totalSortieCtn').textContent = fmt(state.sortieCtn.reduce((s,a)=>s+a.amount,0));
+}
+
+// ----- SORTIES KIN -----
+function saveSortieKin() {
+  const id = $('sk-id').value;
+  const data = {
+    id: id || uid(),
+    date: $('sk-date').value || today(),
+    label: $('sk-label').value,
+    depense: parseFloat($('sk-dep').value)||0,
+    transfert: parseFloat($('sk-transf').value)||0,
+    agent: $('sk-agent').value,
+    obs: $('sk-obs').value
+  };
+  if(!data.depense && !data.transfert) return toast('Montant requis','danger');
+  if(id) { const i = state.sortieKin.findIndex(a=>a.id===id); if(i!==-1) state.sortieKin[i]=data; }
+  else state.sortieKin.push(data);
+  
+  syncItem('sortieKin', data);
+  closeModal('modalSortieKin'); resetForm('sk');
+  renderAll(); toast('Sortie enregistrée');
+}
+function editSortieKin(id) {
+  const d = state.sortieKin.find(a=>a.id===id);
+  $('sk-id').value=d.id; $('sk-date').value=d.date; $('sk-label').value=d.label;
+  $('sk-dep').value=d.depense; $('sk-transf').value=d.transfert;
+  $('sk-agent').value=d.agent; $('sk-obs').value=d.obs||'';
+  openModal('modalSortieKin');
+}
+function delSortieKin(id) {
+  if(!confirm('Supprimer ?')) return;
+  state.sortieKin = state.sortieKin.filter(a=>a.id!==id);
+  deleteItem('sortieKin', id);
+  renderAll(); toast('Supprimé','warning');
+}
+function renderSortieKin() {
+  const tb = $('tbodySortieKin');
+  if(!state.sortieKin.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucune sortie</td></tr>';
+  else tb.innerHTML = state.sortieKin.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`
+    <tr>
+      <td>${s.date}</td>
+      <td>${s.label}</td>
+      <td class="${s.depense?'text-danger fw-bold':'text-muted'}">${s.depense?fmt(s.depense):'-'}</td>
+      <td class="${s.transfert?'text-warning fw-bold':'text-muted'}">${s.transfert?fmt(s.transfert):'-'}</td>
+      <td class="small">${s.agent}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary" onclick="editSortieKin('${s.id}')"><i class="fa-solid fa-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delSortieKin('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+  $('totalDepKin').textContent = fmt(state.sortieKin.reduce((s,a)=>s+a.depense,0));
+  $('totalTransfKin').textContent = fmt(state.sortieKin.reduce((s,a)=>s+a.transfert,0));
+}
+
+// ----- SITUATION -----
+function renderSituation() {
+  $('initCtn').value = state.settings.initCtn;
+  $('initKin').value = state.settings.initKin;
+
+  /* Approvisionnements séparés par agence (mise à jour) */
+  const approvCtn = approvTotalForAgency('ctn');
+  const approvKin = approvTotalForAgency('kin');
+
+  /* === COTONOU === */
+  /* Envois reçus par CTN = transferts ctnKin.received (fonds reçus à Cotonou) */
+  const entCtn = state.ctnKin.reduce((s,t)=>s+t.received,0);
+  /* Retraits faits à CTN = kinCtn.served (servis à CTN pour les codes venant de KIN) + report.served */
+  const servCtn = state.kinCtn.reduce((s,t)=>s+(t.served||0),0) + state.report.reduce((s,r)=>s+r.served,0);
+  /* Retraits en attente à CTN = kinCtn.pending (codes venant de KIN en attente de retrait à CTN) + report.pending */
+  const attCtn = state.kinCtn.reduce((s,t)=>{
+    const toServe = t.toServe || 0;
+    const served = t.served || 0;
+    const remaining = (t.remaining != null) ? t.remaining : (toServe - served);
+    return s + remaining;
+  }, 0) + state.report.reduce((s,r)=>s+(r.total-r.served),0);
+  const sortCtn = state.sortieCtn.reduce((s,a)=>s+a.amount,0);
+  const comCtn = state.ctnKin.reduce((s,t)=>s+t.commission,0);
+
+  $('sit-ctn-init').textContent = fmt(state.settings.initCtn);
+  $('sit-ctn-app').textContent = fmt(approvCtn);
+  $('sit-ctn-ent').textContent = fmt(entCtn);
+  $('sit-ctn-sub1').textContent = fmt(state.settings.initCtn+approvCtn+entCtn);
+  $('sit-ctn-serv').textContent = fmt(servCtn);
+  $('sit-ctn-att').textContent = fmt(attCtn);
+  $('sit-ctn-sort').textContent = fmt(sortCtn);
+  $('sit-ctn-com').textContent = fmt(comCtn);
+  const restCtn = state.settings.initCtn+approvCtn+entCtn-servCtn-sortCtn+comCtn;
+  $('sit-ctn-rest').textContent = fmt(restCtn);
+
+  /* === KINSHASA === */
+  /* Envois reçus par KIN = transferts kinCtn.received (fonds reçus à Kinshasa) */
+  const entKin = state.kinCtn.reduce((s,t)=>s+t.received,0);
+  /* Retraits faits à KIN = ctnKin.served (servis à KIN pour les codes venant de CTN) */
+  const servKin = state.ctnKin.reduce((s,t)=>s+(t.served||t.toServe||0),0);
+  /* Retraits en attente à KIN = ctnKin.pending (codes venant de CTN en attente de retrait à KIN) */
+  const attKin = state.ctnKin.reduce((s,t)=>{
+    const toServe = t.toServe || 0;
+    const served = t.served || 0;
+    const remaining = (t.remaining != null) ? t.remaining : (toServe - served);
+    return s + remaining;
+  }, 0);
+  const transfKin = state.sortieKin.reduce((s,a)=>s+a.transfert,0);
+  const depKin = state.sortieKin.reduce((s,a)=>s+a.depense,0);
+  const comKin = state.kinCtn.reduce((s,t)=>s+t.commission,0);
+
+  $('sit-kin-init').textContent = fmt(state.settings.initKin);
+  if ($('sit-kin-app')) $('sit-kin-app').textContent = fmt(approvKin);
+  $('sit-kin-ent').textContent = fmt(entKin);
+  $('sit-kin-sub1').textContent = fmt(state.settings.initKin+approvKin+entKin);
+  $('sit-kin-serv').textContent = fmt(servKin);
+  if ($('sit-kin-att')) $('sit-kin-att').textContent = fmt(attKin);
+  $('sit-kin-transf').textContent = fmt(transfKin);
+  $('sit-kin-dep').textContent = fmt(depKin);
+  $('sit-kin-com').textContent = fmt(comKin);
+  const restKin = state.settings.initKin+approvKin+entKin-servKin-transfKin-depKin+comKin;
+  $('sit-kin-rest').textContent = fmt(restKin);
+
+  /* ===== SYNTHÈSE GLOBALE (COTONOU + KINSHASA) ===== */
+  const initSynth  = (state.settings.initCtn || 0) + (state.settings.initKin || 0);
+  const appSynth   = approvCtn + approvKin;
+  const entSynth   = entCtn + entKin;
+  const sub1Synth  = initSynth + appSynth + entSynth;
+  const servSynth  = servCtn + servKin;
+  const attSynth   = attCtn + attKin;
+  const sortSynth  = sortCtn + transfKin + depKin;
+  const comSynth   = comCtn + comKin;
+  const restSynth  = restCtn + restKin;
+
+  if ($('sit-synth-init')) $('sit-synth-init').textContent = fmt(initSynth);
+  if ($('sit-synth-app'))  $('sit-synth-app').textContent  = fmt(appSynth);
+  if ($('sit-synth-ent'))  $('sit-synth-ent').textContent  = fmt(entSynth);
+  if ($('sit-synth-sub1')) $('sit-synth-sub1').textContent = fmt(sub1Synth);
+  if ($('sit-synth-serv')) $('sit-synth-serv').textContent = fmt(servSynth);
+  if ($('sit-synth-att'))  $('sit-synth-att').textContent  = fmt(attSynth);
+  if ($('sit-synth-sort')) $('sit-synth-sort').textContent = fmt(sortSynth);
+  if ($('sit-synth-com'))  $('sit-synth-com').textContent  = fmt(comSynth);
+  if ($('sit-synth-rest')) $('sit-synth-rest').textContent = fmt(restSynth);
+}
+function saveSettings() {
+  state.settings.initCtn = parseFloat($('initCtn').value)||0;
+  state.settings.initKin = parseFloat($('initKin').value)||0;
+  state.settings.tauxMoyen = parseFloat($('tauxMoyen').value)||0;
+  if (!Array.isArray(state.settings.customSources)) state.settings.customSources = [];
+  syncSettings(state.settings);
+  renderAll();
+}
+
+// ----- SOLDE -----
+function renderSolde() {
+  const comKin = state.kinCtn.reduce((s,t)=>s+t.commission,0);
+  const comCtn = state.ctnKin.reduce((s,t)=>s+t.commission,0);
+  const totalProd = comKin+comCtn;
+  const chgCtn = state.sortieCtn.reduce((s,a)=>s+a.amount,0);
+  const chgKin = state.sortieKin.reduce((s,a)=>s+a.depense,0);
+  const totalChg = chgCtn+chgKin;
+  const margin = totalProd-totalChg;
+  const taux = parseFloat($('tauxMoyen').value)||0;
+
+  $('res-com-kin').textContent = fmt(comKin);
+  $('res-com-ctn').textContent = fmt(comCtn);
+  $('res-total-prod').textContent = fmt(totalProd);
+  $('res-chg-ctn').textContent = fmt(chgCtn);
+  $('res-chg-kin').textContent = fmt(chgKin);
+  $('res-total-chg').textContent = fmt(totalChg);
+  $('res-margin').textContent = fmt(margin);
+  $('res-margin-fcfa').textContent = (margin*taux).toLocaleString('fr-FR',{maximumFractionDigits:2})+' FCFA';
+  $('res-nb-kin').textContent = state.kinCtn.length;
+  $('res-nb-ctn').textContent = state.ctnKin.length;
+  const totalVol = state.kinCtn.reduce((s,t)=>s+t.received,0)+state.ctnKin.reduce((s,t)=>s+t.received,0);
+  $('res-rate').textContent = totalVol?((margin/totalVol)*100).toFixed(2)+'%':'0%';
+  const nb = state.kinCtn.length+state.ctnKin.length;
+  $('res-avg-com').textContent = fmt(nb?totalProd/nb:0);
+}
+
+// ----- DASHBOARD -----
+function renderDashboard() {
+  const setKpi = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+
+  /* --- Agence Kinshasa (RDC) — collection kinCtn --- */
+  const kinRecu    = state.kinCtn.reduce((s,t)=>s+(t.received||0),0);
+  const kinServi   = state.kinCtn.reduce((s,t)=>s+(t.served||0),0);
+  const kinReste   = state.kinCtn.reduce((s,t)=>s+(t.remaining!=null?t.remaining:((t.toServe||0)-(t.served||0))),0);
+  const kinCom     = state.kinCtn.reduce((s,t)=>s+(t.commission||0),0);
+  const kinCharges = state.sortieKin.reduce((s,a)=>s+(a.depense||0),0);
+  const kinSolde   = kinRecu - kinServi - kinCharges;
+  /* Solde Approv. agence = (Approv + Reçu) - Servi (mise à jour) */
+  const kinApprovSolde = approvTotalForAgency('kin') + kinRecu - kinServi;
+
+  setKpi('dash-kin-recu',    fmt(kinRecu));
+  setKpi('dash-kin-servi',   fmt(kinServi));
+  setKpi('dash-kin-reste',   fmt(kinReste));
+  setKpi('dash-kin-com',     fmt(kinCom));
+  setKpi('dash-kin-charges', fmt(kinCharges));
+  setKpi('dash-kin-solde',   fmt(kinSolde));
+  setKpi('dash-kin-approv',  'Solde Approv. : ' + fmt(kinApprovSolde));
+
+  /* --- Agence Cotonou (Bénin) — collection ctnKin --- */
+  const ctnRecu    = state.ctnKin.reduce((s,t)=>s+(t.received||0),0);
+  const ctnServi   = state.ctnKin.reduce((s,t)=>s+(t.served||0),0);
+  const ctnReste   = state.ctnKin.reduce((s,t)=>s+(t.remaining!=null?t.remaining:((t.toServe||0)-(t.served||0))),0);
+  const ctnCom     = state.ctnKin.reduce((s,t)=>s+(t.commission||0),0);
+  const ctnCharges = state.sortieCtn.reduce((s,a)=>s+(a.amount||0),0);
+  const ctnSolde   = ctnRecu - ctnServi - ctnCharges;
+  /* Solde Approv. agence = (Approv + Reçu) - Servi (mise à jour) */
+  const ctnApprovSolde = approvTotalForAgency('ctn') + ctnRecu - ctnServi;
+
+  setKpi('dash-ctn-recu',    fmt(ctnRecu));
+  setKpi('dash-ctn-servi',   fmt(ctnServi));
+  setKpi('dash-ctn-reste',   fmt(ctnReste));
+  setKpi('dash-ctn-com',     fmt(ctnCom));
+  setKpi('dash-ctn-charges', fmt(ctnCharges));
+  setKpi('dash-ctn-solde',   fmt(ctnSolde));
+  setKpi('dash-ctn-approv',  'Solde Approv. : ' + fmt(ctnApprovSolde));
+
+  /* --- Synthèse globale des agences --- */
+  setKpi('dash-synth-com',     fmt(kinCom + ctnCom));
+  setKpi('dash-synth-charges', fmt(kinCharges + ctnCharges));
+  setKpi('dash-synth-approv',  fmt(kinApprovSolde + ctnApprovSolde));
+  setKpi('dash-synth-solde',   fmt(kinSolde + ctnSolde));
+
+  /* --- Dernières transactions --- */
+  const all = [
+    ...state.kinCtn.map(t=>({date:t.date,time:t.time,type:'KIN→CTN',desc:t.benef,amount:t.received,color:'success'})),
+    ...state.ctnKin.map(t=>({date:t.date,time:t.time,type:'CTN→KIN',desc:t.exp || t.sender,amount:t.received,color:'info'})),
+    ...state.approv.map(a=>({date:a.date,time:'',type:'APPROV',desc:(a.agency === 'kin' ? 'Kinshasa' : (a.agency === 'ctn' ? 'Cotonou' : 'Cotonou')) + ' • ' + (a.source||''),amount:a.amount,color:'primary'}))
+  ].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,8);
+  if(!all.length) $('recentTransactions').innerHTML='<p class="text-muted text-center py-3 mb-0">Aucune transaction récente</p>';
+  else $('recentTransactions').innerHTML = all.map(t=>`
+    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+      <div><span class="badge bg-${t.color} me-1">${t.type}</span><span class="fw-bold">${t.desc||''}</span><div class="text-muted small">${t.date} ${t.time||''}</div></div>
+      <div class="fw-bold text-success">${fmt(t.amount)}</div>
+    </div>`).join('');
+}
+
+// ----- HELPERS -----
+function resetForm(prefix) {
+  document.querySelectorAll(`#${prefix}-id, #${prefix}-date, #${prefix}-time, #${prefix}-label, #${prefix}-amount, #${prefix}-benef, #${prefix}-phone, #${prefix}-exp, #${prefix}-received, #${prefix}-com, #${prefix}-served, #${prefix}-serve, #${prefix}-remaining, #${prefix}-taux, #${prefix}-agent, #${prefix}-agency, #${prefix}-obs, #${prefix}-dep, #${prefix}-transf, #${prefix}-total, #${prefix}-source, #${prefix}-status`).forEach(el=>{
+    if(el.tagName==='SELECT') el.selectedIndex=0;
+    else if(el.type==='number') el.value = '0';
+    else el.value='';
+  });
+}
+
+function renderAll() {
+  renderApprov(); renderKinCtn(); renderCtnKin(); renderReport();
+  renderSortieCtn(); renderSortieKin(); renderSituation(); renderSolde(); renderDashboard();
+}
+
+// ----- EXPORT / IMPORT -----
+function exportData() {
+  const data = {
+    version:'1.0', exportDate:new Date().toISOString(),
+    approv:state.approv, kinCtn:state.kinCtn, ctnKin:state.ctnKin,
+    report:state.report, sortieCtn:state.sortieCtn, sortieKin:state.sortieKin,
+    settings:state.settings
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`MoneyTransfert_${today()}.json`; a.click();
+  URL.revokeObjectURL(url);
+  toast('Export réussi');
+}
+function importData(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if(!confirm('Remplacer toutes les données actuelles ?')) return;
+      
+      if (window.useFirebase && window.db) {
+        toast("Importation vers le cloud en cours...", "info");
+        ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
+          if(data[k]) { 
+            state[k] = data[k];
+            data[k].forEach(item => syncItem(k, item));
+          }
+        });
+        if(data.settings) {
+          state.settings = data.settings;
+          if (!Array.isArray(state.settings.customSources)) state.settings.customSources = [];
+          syncSettings(data.settings);
+        }
+      } else {
+        ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
+          if(data[k]) { state[k]=data[k]; localStorage.setItem('mt_'+k, JSON.stringify(data[k])); }
+        });
+        if(data.settings) { state.settings=data.settings; if (!Array.isArray(state.settings.customSources)) state.settings.customSources=[]; localStorage.setItem('mt_settings', JSON.stringify(data.settings)); }
+      }
+      
+      renderAll(); toast('Import réussi');
+    } catch(err) { toast('Fichier invalide','danger'); }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+async function resetData() {
+  if(!confirm('⚠️ Supprimer TOUTES les données ? Cette action est irréversible.')) return;
+  if(!confirm('Confirmer la suppression définitive ?')) return;
+  
+  if (window.useFirebase && window.db) {
+    toast("Nettoyage du cloud en cours...", "info");
+    const updates = {};
+    collections.forEach(col => { updates[col] = null; });
+    updates['settings'] = null;
+    await window.fbUtils.update(window.fbUtils.ref(window.db), updates);
+  }
+  
+  ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin','settings'].forEach(k=>localStorage.removeItem('mt_'+k));
+  location.reload();
+}
+
+// ----- NETWORK STATUS -----
+function updateNet() {
+  const el = $('netStatus');
+  if (!el) return;
+  if (navigator.onLine) { 
+    el.className = 'badge-status status-online'; 
+    el.innerHTML = '<i class="fa-solid fa-wifi me-1"></i>En ligne'; 
+  } else { 
+    el.className = 'badge-status status-offline'; 
+    el.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i>Hors ligne'; 
+  }
+}
+window.addEventListener('online', () => { updateNet(); toast('Connexion rétablie', 'success'); });
+window.addEventListener('offline', () => { updateNet(); toast('Vous êtes hors ligne', 'warning'); });
+
+// ----- INIT -----
+document.addEventListener('DOMContentLoaded', () => {
+  $('currentDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if($('tauxMoyen')) $('tauxMoyen').value = state.settings.tauxMoyen;
+  renderApprovSourceOptions();
+  updateNet();
+  setupRealtimeListeners();
+  renderAll();
+});
+
+// ----- PWA SERVICE WORKER -----
+if('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE='mt-v1';
+    const URLS=['/'];
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS))));
+    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+  `;
+  const swBlob = new Blob([swCode],{type:'application/javascript'});
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+// ----- BOUTON D'INSTALLATION PWA FLOTTANT INTELLIGENT -----
+let deferredPrompt = null;
+
+const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.matchMedia('(display-mode: fullscreen)').matches ||
+  window.navigator.standalone === true;
+
+function createInstallButton() {
+  if (document.getElementById('pwaInstallBtn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'pwaInstallBtn';
+  btn.type = 'button';
+  btn.innerHTML = `<i class="fa-solid fa-download"></i><span>Installer l'application</span><span class="pwa-pulse"></span>`;
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    btn.style.pointerEvents = 'none';
+    deferredPrompt.prompt();
+    try {
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        toast('Installation en cours...', 'success');
+      } else {
+        toast('Installation annulée', 'warning');
+      }
+    } catch (err) {
+      console.warn('Erreur prompt installation:', err);
+    }
+    deferredPrompt = null;
+    btn.remove();
+  });
+  document.body.appendChild(btn);
+  requestAnimationFrame(() => {
+    setTimeout(() => btn.classList.add('show'), 50);
+  });
+}
+
+function removeInstallButton() {
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.remove();
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!isStandalone) createInstallButton();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  removeInstallButton();
+  toast('Application installée avec succès !', 'success');
+});
+
+if (isStandalone) {
+  removeInstallButton();
+}
+</script>
+</body>
+</html>

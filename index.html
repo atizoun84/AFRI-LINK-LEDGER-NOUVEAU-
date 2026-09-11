@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#075E54">
 <link rel="manifest" href="manifest.json">
-<title>AFRI LINK LEDGER - Gestion KIN↔CTN</title>
+<title>AFRI LINK LEDGER - Accueil</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -22,98 +22,118 @@
   .sidebar.open { transform:translateX(0); }
   .sidebar-header { padding:1rem; background:linear-gradient(90deg,var(--wt-dark),var(--wt-teal)); color:#fff; display:flex; justify-content:space-between; align-items:center; }
   .sidebar-nav { flex:1; overflow-y:auto; padding:.75rem; }
-  .nav-item { display:flex; align-items:center; gap:.75rem; padding:.7rem .9rem; border-radius:.6rem; color:#cbd5e1; cursor:pointer; margin-bottom:.25rem; font-size:.9rem; transition:all .2s; }
+  .nav-item { display:flex; align-items:center; gap:.75rem; padding:.7rem .9rem; border-radius:.6rem; color:#cbd5e1; cursor:pointer; margin-bottom:.25rem; font-size:.9rem; transition:all .2s; text-decoration:none; }
   .nav-item:hover { background:rgba(255,255,255,.08); color:#fff; }
   .nav-item.active { background:var(--wt-teal); color:#fff; font-weight:600; }
   .nav-item i { width:20px; text-align:center; }
   .overlay { position:absolute; inset:0; background:rgba(0,0,0,.5); z-index:40; opacity:0; pointer-events:none; transition:opacity .3s; }
   .overlay.show { opacity:1; pointer-events:auto; }
   .main-content { flex:1; overflow-y:auto; padding:1rem; padding-bottom:2rem; }
-  .view { display:none; animation:fadeIn .3s ease; }
-  .view.active { display:block; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
-  .kpi-card { background:#fff; border-radius:1rem; padding:1rem; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,.04); }
-  .kpi-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; }
-  .kpi-value { font-size:1.35rem; font-weight:900; margin-top:.25rem; }
-  .card-custom { background:#fff; border-radius:1rem; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,.04); }
-  .btn-wt { background:var(--wt-teal); color:#fff; border:none; }
-  .btn-wt:hover { background:var(--wt-dark); color:#fff; }
   .badge-status { font-size:.7rem; padding:.25rem .5rem; border-radius:999px; font-weight:700; }
   .status-online { background:#10b981; color:#fff; }
-  .status-sync { background:#f59e0b; color:#fff; animation:pulse 1.5s infinite; }
   .status-offline { background:#ef4444; color:#fff; animation:pulse 1.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
-  .table-custom { font-size:.85rem; }
-  .table-custom thead th { background:#f9fafb; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:#374151; position:sticky; top:0; z-index:5; }
-  .table-custom td { vertical-align:middle; }
-  .table-container { max-height:60vh; overflow-y:auto; border-radius:.75rem; border:1px solid #e5e7eb; background:#fff; }
-  .form-label { font-size:.8rem; font-weight:600; color:#374151; }
-  .form-control, .form-select { font-size:.9rem; }
-  .toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; }
-  .shortcut-btn { background:#fff; border:1px solid #e5e7eb; border-radius:1rem; padding:1rem; text-align:center; cursor:pointer; transition:all .2s; }
-  .shortcut-btn:hover { border-color:var(--wt-teal); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
-  .shortcut-icon { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto .5rem; font-size:1.25rem; }
-  .amount-positive { color:#10b981; font-weight:700; }
-  .amount-negative { color:#ef4444; font-weight:700; }
-  .amount-neutral { color:#6b7280; font-weight:600; }
-  @media (max-width:768px) {
-    .kpi-value { font-size:1.1rem; }
-    .main-content { padding:.75rem; }
-  }
-  .scrollbar-none::-webkit-scrollbar { display:none; }
-  .scrollbar-none { scrollbar-width:none; }
+
+  /* HERO */
+  .hero { background:linear-gradient(135deg,#075E54 0%, #128C7E 55%, #25D366 100%); border-radius:1.25rem; padding:2rem 1.5rem; color:#fff; text-align:center; margin-bottom:1.25rem; box-shadow:0 10px 28px rgba(7,94,84,.28); position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-50%; right:-20%; width:300px; height:300px; background:rgba(255,255,255,.08); border-radius:50%; }
+  .hero::after { content:''; position:absolute; bottom:-40%; left:-10%; width:220px; height:220px; background:rgba(255,255,255,.06); border-radius:50%; }
+  .hero-content { position:relative; z-index:1; }
+  .hero-icon { font-size:2.75rem; margin-bottom:.5rem; opacity:.95; }
+  .hero h1 { font-size:1.7rem; font-weight:800; letter-spacing:1.2px; margin-bottom:.5rem; }
+  .hero-subtitle { font-size:.92rem; opacity:.92; max-width:540px; margin:0 auto .85rem; line-height:1.55; }
+  .hero-features { display:flex; justify-content:center; gap:1.25rem; flex-wrap:wrap; margin-top:.9rem; }
+  .feature { display:flex; align-items:center; gap:.4rem; font-size:.78rem; font-weight:600; opacity:.95; }
+
+  /* ACTIONS */
+  .actions { display:grid; grid-template-columns:1fr; gap:1rem; margin-bottom:1.25rem; }
+  @media (min-width:640px) { .actions { grid-template-columns:1fr 1fr; } }
+  .action-card { display:flex; align-items:center; gap:1rem; padding:1.4rem; border-radius:1.25rem; border:none; background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.06); cursor:pointer; transition:all .25s cubic-bezier(.34,1.56,.64,1); text-align:left; width:100%; }
+  .action-card:hover { transform:translateY(-4px); box-shadow:0 14px 34px rgba(0,0,0,.12); }
+  .action-card:active { transform:translateY(-2px); }
+  .action-envoi { border-left:4px solid #10b981; }
+  .action-retrait { border-left:4px solid #128C7E; }
+  .action-icon { width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+  .action-envoi .action-icon { background:linear-gradient(135deg,#10b981,#059669); color:#fff; box-shadow:0 6px 16px rgba(16,185,129,.35); }
+  .action-retrait .action-icon { background:linear-gradient(135deg,#128C7E,#075E54); color:#fff; box-shadow:0 6px 16px rgba(18,140,126,.35); }
+  .action-text { flex:1; }
+  .action-text h2 { font-size:1.3rem; font-weight:800; margin:0 0 .2rem; color:#111827; }
+  .action-text p { font-size:.82rem; color:#6b7280; margin:0; line-height:1.4; }
+  .action-arrow { color:#d1d5db; font-size:1rem; transition:all .2s; }
+  .action-card:hover .action-arrow { color:#128C7E; transform:translateX(5px); }
+
+  /* Lien comptabilité */
+  .link-compta { text-align:center; margin-bottom:1rem; }
+  .link-compta a { display:inline-flex; align-items:center; gap:.6rem; padding:.85rem 1.4rem; background:#fff; border:1px solid #e5e7eb; border-radius:999px; color:#075E54; font-weight:700; font-size:.88rem; text-decoration:none; transition:all .2s; box-shadow:0 2px 6px rgba(0,0,0,.04); }
+  .link-compta a:hover { background:var(--wt-dark); color:#fff; border-color:var(--wt-dark); transform:translateY(-2px); box-shadow:0 8px 20px rgba(7,94,84,.25); }
+  .link-compta a i:first-child { color:#10b981; transition:color .2s; }
+  .link-compta a:hover i:first-child { color:#25D366; }
+
   footer { background:#fff; border-top:1px solid #e5e7eb; padding:.75rem; text-align:center; font-size:.75rem; color:#6b7280; flex-shrink:0; }
 
-  /* ===== Bouton d'installation flottant intelligent ===== */
-  #pwaInstallBtn {
-    position: fixed;
-    bottom: 85px;
-    right: 20px;
-    z-index: 9998;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: .8rem 1.3rem;
-    font-size: .85rem;
-    font-weight: 700;
-    letter-spacing: .3px;
-    display: flex;
-    align-items: center;
-    gap: .55rem;
-    box-shadow: 0 6px 22px rgba(16,185,129,.45), 0 2px 6px rgba(0,0,0,.15);
-    cursor: pointer;
-    opacity: 0;
-    transform: translateY(24px) scale(.9);
-    pointer-events: none;
-    transition: all .35s cubic-bezier(.34,1.56,.64,1);
-  }
-  #pwaInstallBtn.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
-  #pwaInstallBtn:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 10px 28px rgba(16,185,129,.6), 0 3px 8px rgba(0,0,0,.18);
-  }
-  #pwaInstallBtn:active { transform: translateY(0) scale(.98); }
-  #pwaInstallBtn i { font-size: 1rem; }
-  #pwaInstallBtn .pwa-pulse {
-    position: absolute;
-    inset: -4px;
-    border-radius: 999px;
-    background: rgba(16,185,129,.35);
-    animation: pwaPulse 2s infinite;
-    z-index: -1;
-  }
-  @keyframes pwaPulse {
-    0% { transform: scale(1); opacity: .7; }
-    100% { transform: scale(1.25); opacity: 0; }
-  }
-  @media (max-width: 768px) {
-    #pwaInstallBtn { bottom: 75px; right: 12px; padding: .7rem 1.05rem; font-size: .78rem; }
-    #pwaInstallBtn i { font-size: .9rem; }
+  /* MODALES ÉLÉGANTES */
+  .modal-elegant .modal-content { border:none; border-radius:1.25rem; overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,.28); }
+  .modal-elegant .modal-header { background:linear-gradient(135deg,var(--wt-dark),var(--wt-teal)); color:#fff; padding:1.15rem 1.5rem; border:none; align-items:flex-start; }
+  .modal-elegant .modal-header h5 { font-weight:700; display:flex; align-items:center; gap:.55rem; margin:0; font-size:1.1rem; }
+  .modal-elegant .modal-header small { display:block; opacity:.88; font-size:.78rem; margin-top:.3rem; font-weight:400; }
+  .modal-elegant .modal-header .btn-close { filter:invert(1); opacity:.85; margin:0; }
+  .modal-elegant .modal-header .btn-close:hover { opacity:1; }
+  .modal-elegant .modal-body { padding:1.5rem; }
+  .modal-elegant .modal-footer { border:none; padding:1rem 1.5rem 1.35rem; background:#f9fafb; }
+
+  .dest-selector { margin-bottom:1.15rem; }
+  .dest-selector label { font-size:.88rem; font-weight:700; color:#374151; display:block; margin-bottom:.5rem; }
+  .dest-selector select { font-size:1rem; padding:.85rem 1rem; border-radius:.75rem; border:2px solid #e5e7eb; font-weight:600; transition:all .2s; }
+  .dest-selector select:focus { border-color:var(--wt-teal); box-shadow:0 0 0 .2rem rgba(18,140,126,.15); outline:none; }
+
+  .form-section { animation:fadeIn .35s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
+
+  .code-secret-box { background:linear-gradient(135deg,#fef3c7,#fde68a); border:2px dashed #f59e0b; border-radius:.85rem; padding:1rem 1rem .85rem; text-align:center; margin-top:.65rem; }
+  .code-secret-box label { font-size:.78rem; font-weight:700; color:#92400e; display:block; margin-bottom:.5rem; letter-spacing:.5px; }
+  .code-display { font-size:1.65rem; font-weight:900; letter-spacing:4px; color:#92400e; font-family:'Courier New',monospace; user-select:all; cursor:pointer; transition:transform .15s; }
+  .code-display:hover { transform:scale(1.03); }
+  .code-hint { font-size:.7rem; color:#92400e; opacity:.75; margin-top:.35rem; }
+
+  .retrait-info { background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-radius:.85rem; padding:1rem; margin-bottom:1rem; }
+  .retrait-info .info-row { display:flex; justify-content:space-between; padding:.45rem 0; border-bottom:1px solid rgba(30,64,175,.15); font-size:.88rem; }
+  .retrait-info .info-row:last-child { border-bottom:none; }
+  .retrait-info .info-row .label { color:#1e40af; font-weight:600; }
+  .retrait-info .info-row .value { font-weight:800; color:#1e3a8a; }
+  .retrait-error { background:#fee2e2; color:#991b1b; padding:.8rem 1rem; border-radius:.6rem; font-size:.85rem; font-weight:600; display:flex; align-items:center; gap:.5rem; }
+  .retrait-success { background:#d1fae5; color:#065f46; padding:.8rem 1rem; border-radius:.6rem; font-size:.85rem; font-weight:600; display:flex; align-items:center; gap:.5rem; }
+  .retrait-hint { background:#fef3c7; color:#92400e; padding:.65rem 1rem; border-radius:.6rem; font-size:.78rem; font-weight:600; display:flex; align-items:center; gap:.5rem; margin-top:.75rem; }
+
+  .btn-wt { background:var(--wt-teal); color:#fff; border:none; font-weight:700; padding:.7rem 1.5rem; border-radius:.7rem; transition:all .2s; }
+  .btn-wt:hover { background:var(--wt-dark); color:#fff; transform:translateY(-1px); box-shadow:0 6px 14px rgba(7,94,84,.3); }
+  .btn-wt-lg { padding:1rem 2rem; font-size:1.02rem; width:100%; }
+  .btn-wt-secondary { background:#e5e7eb; color:#374151; }
+  .btn-wt-secondary:hover { background:#d1d5db; color:#111827; }
+
+  .form-label { font-size:.8rem; font-weight:700; color:#374151; margin-bottom:.35rem; }
+  .form-control, .form-select { font-size:.9rem; padding:.6rem .85rem; border-radius:.6rem; border:1.5px solid #e5e7eb; }
+  .form-control:focus, .form-select:focus { border-color:var(--wt-teal); box-shadow:0 0 0 .2rem rgba(18,140,126,.15); }
+  .form-control-lg { font-size:1.05rem; padding:.75rem 1rem; }
+  .form-control[readonly] { background:#f9fafb; }
+
+  .toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; }
+
+  .scrollbar-none::-webkit-scrollbar { display:none; }
+  .scrollbar-none { scrollbar-width:none; }
+
+  @media (max-width:768px) {
+    .hero { padding:1.5rem 1rem; }
+    .hero h1 { font-size:1.4rem; }
+    .hero-icon { font-size:2.2rem; }
+    .hero-features { gap:.9rem; }
+    .feature { font-size:.72rem; }
+    .action-card { padding:1.15rem; }
+    .action-icon { width:52px; height:52px; font-size:1.25rem; }
+    .action-text h2 { font-size:1.12rem; }
+    .action-text p { font-size:.76rem; }
+    .main-content { padding:.75rem; }
+    .modal-elegant .modal-body { padding:1.1rem; }
+    .code-display { font-size:1.35rem; letter-spacing:3px; }
   }
 </style>
 </head>
@@ -124,27 +144,18 @@
   <!-- OVERLAY -->
   <div class="overlay" id="overlay" onclick="toggleSidebar(false)"></div>
 
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR MINIMAL -->
   <aside class="sidebar scrollbar-none" id="sidebar">
     <div class="sidebar-header">
       <div><i class="fa-solid fa-link me-2"></i><span class="fw-bold">AFRI LINK LEDGER</span></div>
       <button class="btn btn-sm text-white" onclick="toggleSidebar(false)"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><i class="fa-solid fa-gauge-high"></i>Tableau de Bord</div>
-      <div class="nav-item" data-view="approv" onclick="showView('approv')"><i class="fa-solid fa-sack-dollar"></i>Approvisionnements</div>
-      <div class="nav-item" data-view="kin-ctn" onclick="showView('kin-ctn')"><i class="fa-solid fa-arrow-right-arrow-left"></i>Transferts KIN → CTN</div>
-      <div class="nav-item" data-view="ctn-kin" onclick="showView('ctn-kin')"><i class="fa-solid fa-arrow-left"></i>Transferts CTN → KIN</div>
-      <div class="nav-item" data-view="report" onclick="showView('report')"><i class="fa-solid fa-clock-rotate-left"></i>Codes Reportés</div>
-      <div class="nav-item" data-view="sortie-ctn" onclick="showView('sortie-ctn')"><i class="fa-solid fa-receipt"></i>Sorties Fonds CTN</div>
-      <div class="nav-item" data-view="sortie-kin" onclick="showView('sortie-kin')"><i class="fa-solid fa-file-invoice-dollar"></i>Sorties Fonds KIN</div>
-      <div class="nav-item" data-view="situation" onclick="showView('situation')"><i class="fa-solid fa-chart-pie"></i>Situation Détaillée</div>
-      <div class="nav-item" data-view="solde" onclick="showView('solde')"><i class="fa-solid fa-scale-balanced"></i>Solde & Marge</div>
+      <div class="nav-item active"><i class="fa-solid fa-house"></i>Accueil</div>
+      <div class="nav-item" onclick="toggleSidebar(false); openEnvoi();"><i class="fa-solid fa-paper-plane"></i>Nouvel Envoi</div>
+      <div class="nav-item" onclick="toggleSidebar(false); openRetrait();"><i class="fa-solid fa-hand-holding-dollar"></i>Nouveau Retrait</div>
       <div class="border-top border-secondary my-2"></div>
-      <div class="nav-item" onclick="exportData()"><i class="fa-solid fa-download"></i>Exporter Données</div>
-      <div class="nav-item" onclick="document.getElementById('importFile').click()"><i class="fa-solid fa-upload"></i>Importer Données</div>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      <div class="nav-item text-danger" onclick="resetData()"><i class="fa-solid fa-trash"></i>Réinitialiser</div>
+      <a href="principal.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Comptabilité &amp; Analyse</a>
     </nav>
     <div class="p-3 border-top border-secondary text-center" style="font-size:.7rem;">
       <div class="text-success"><i class="fa-solid fa-shield-halved"></i> MoneyTransfert v1.0</div>
@@ -152,7 +163,7 @@
     </div>
   </aside>
 
-  <!-- HEADER -->
+  <!-- HEADER (uniformisé) -->
   <header class="app-header">
     <button class="btn text-white p-0" onclick="toggleSidebar(true)"><i class="fa-solid fa-bars fs-5"></i></button>
     <h1 class="d-flex align-items-center gap-2 flex-grow-1">
@@ -169,353 +180,218 @@
   <!-- MAIN -->
   <main class="main-content scrollbar-none">
 
-    <!-- ============ DASHBOARD ============ -->
-    <section class="view active" id="view-dashboard">
-      <div class="mb-3">
-        <h3 class="fw-bold mb-1"><i class="fa-solid fa-gauge-high text-success"></i> Tableau de Bord</h3>
-        <p class="text-muted small mb-0">Vue d'ensemble de votre activité de transfert KIN ↔ CTN</p>
-      </div>
-
-      <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Total Reçu KIN</div><div class="kpi-value text-success" id="kpi-received-kin">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Commissions KIN</div><div class="kpi-value text-primary" id="kpi-com-kin">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Total Servi</div><div class="kpi-value text-info" id="kpi-served">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Reste à Servir</div><div class="kpi-value text-danger" id="kpi-remaining">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Commissions CTN→KIN</div><div class="kpi-value text-primary" id="kpi-com-ctn">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Total Commissions</div><div class="kpi-value text-success" id="kpi-com-total">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Charges CTN</div><div class="kpi-value text-danger" id="kpi-charges-ctn">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Charges KIN</div><div class="kpi-value text-danger" id="kpi-charges-kin">$0</div></div></div>
-        <div class="col-12 col-md-6"><div class="kpi-card" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff;"><div class="kpi-label" style="color:rgba(255,255,255,.8);">MARGE NETTE</div><div class="kpi-value" style="font-size:1.6rem;" id="kpi-margin">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Solde Caisse CTN</div><div class="kpi-value text-warning" id="kpi-caisse-ctn">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Solde Caisse KIN</div><div class="kpi-value text-warning" id="kpi-caisse-kin">$0</div></div></div>
-      </div>
-
-      <h5 class="fw-bold mb-2"><i class="fa-solid fa-bolt text-warning"></i> Actions Rapides</h5>
-      <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('kin-ctn'); setTimeout(()=>openModal('modalKinCtn'),100)"><div class="shortcut-icon bg-success bg-opacity-10 text-success"><i class="fa-solid fa-plus"></i></div><div class="small fw-bold">Nouveau Transfert KIN→CTN</div></div></div>
-        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('approv'); setTimeout(()=>openModal('modalApprov'),100)"><div class="shortcut-icon bg-primary bg-opacity-10 text-primary"><i class="fa-solid fa-sack-dollar"></i></div><div class="small fw-bold">Approvisionner CTN</div></div></div>
-        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('sortie-kin'); setTimeout(()=>openModal('modalSortieKin'),100)"><div class="shortcut-icon bg-danger bg-opacity-10 text-danger"><i class="fa-solid fa-money-bill-transfer"></i></div><div class="small fw-bold">Transférer vers CTN</div></div></div>
-        <div class="col-6 col-md-3"><div class="shortcut-btn" onclick="showView('solde')"><div class="shortcut-icon bg-warning bg-opacity-10 text-warning"><i class="fa-solid fa-chart-line"></i></div><div class="small fw-bold">Voir la Marge</div></div></div>
-      </div>
-
-      <div class="card-custom p-3">
-        <h6 class="fw-bold mb-2"><i class="fa-solid fa-clock-rotate-left text-info"></i> Dernières Transactions</h6>
-        <div id="recentTransactions" class="small"></div>
-      </div>
-    </section>
-
-    <!-- ============ APPROVISIONNEMENTS ============ -->
-    <section class="view" id="view-approv">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-sack-dollar text-primary"></i> Approvisionnements CTN</h4><p class="text-muted small mb-0">Fonds reçus de Kinshasa ou de Mr Louis</p></div>
-        <button class="btn btn-wt" onclick="openModal('modalApprov')"><i class="fa-solid fa-plus"></i> Ajouter</button>
-      </div>
-      <div class="card-custom p-3 mb-3">
-        <div class="row g-2 text-center">
-          <div class="col-6"><div class="kpi-label">Total Approvisionné</div><div class="h5 fw-bold text-success" id="totalApprov">$0</div></div>
-          <div class="col-6"><div class="kpi-label">Avances Mr Louis</div><div class="h5 fw-bold text-warning" id="totalLouis">$0</div></div>
-        </div>
-      </div>
-      <div class="table-container">
-        <table class="table table-custom table-hover mb-0">
-          <thead><tr><th>Date</th><th>Libellé</th><th>Source</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
-          <tbody id="tbodyApprov"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============ KIN → CTN ============ -->
-    <section class="view" id="view-kin-ctn">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-arrow-right-arrow-left text-success"></i> Transferts KIN → CTN</h4><p class="text-muted small mb-0">Clients envoyant de Kinshasa vers Cotonou</p></div>
-        <button class="btn btn-wt" onclick="openModal('modalKinCtn')"><i class="fa-solid fa-plus"></i> Nouveau</button>
-      </div>
-      <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Reçu</div><div class="h6 fw-bold text-success" id="kinCtn-received">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Commission</div><div class="h6 fw-bold text-primary" id="kinCtn-com">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Servi</div><div class="h6 fw-bold text-info" id="kinCtn-served">$0</div></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">Reste</div><div class="h6 fw-bold text-danger" id="kinCtn-remaining">$0</div></div></div>
-      </div>
-      <div class="mb-2">
-        <input type="text" class="form-control form-control-sm" placeholder="🔍 Rechercher bénéficiaire..." oninput="renderKinCtn(this.value)">
-      </div>
-      <div class="table-container">
-        <table class="table table-custom table-hover mb-0">
-          <thead><tr><th>Date</th><th>Heure</th><th>Bénéficiaire</th><th>Reçu</th><th>Com.</th><th>Servi</th><th>Reste</th><th></th></tr></thead>
-          <tbody id="tbodyKinCtn"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============ CTN → KIN ============ -->
-    <section class="view" id="view-ctn-kin">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-arrow-left text-info"></i> Transferts CTN → KIN</h4><p class="text-muted small mb-0">Clients envoyant de Cotonou vers Kinshasa</p></div>
-        <button class="btn btn-wt" onclick="openModal('modalCtnKin')"><i class="fa-solid fa-plus"></i> Nouveau</button>
-      </div>
-      <div class="row g-2 mb-3">
-        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Reçu</div><div class="h6 fw-bold text-success" id="ctnKin-received">$0</div></div></div>
-        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Commission</div><div class="h6 fw-bold text-primary" id="ctnKin-com">$0</div></div></div>
-        <div class="col-4"><div class="kpi-card"><div class="kpi-label">À Servir</div><div class="h6 fw-bold text-info" id="ctnKin-serve">$0</div></div></div>
-      </div>
-      <div class="table-container">
-        <table class="table table-custom table-hover mb-0">
-          <thead><tr><th>Date</th><th>Expéditeur</th><th>Reçu</th><th>Com.</th><th>À Servir</th><th></th></tr></thead>
-          <tbody id="tbodyCtnKin"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============ REPORT DE CODES ============ -->
-    <section class="view" id="view-report">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left text-warning"></i> Codes Reportés</h4><p class="text-muted small mb-0">Suivi des dettes clients historiques</p></div>
-        <button class="btn btn-wt" onclick="openModal('modalReport')"><i class="fa-solid fa-plus"></i> Ajouter</button>
-      </div>
-      <div class="row g-2 mb-3">
-        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Total Dû</div><div class="h6 fw-bold text-danger" id="report-total">$0</div></div></div>
-        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Servi</div><div class="h6 fw-bold text-success" id="report-served">$0</div></div></div>
-        <div class="col-4"><div class="kpi-card"><div class="kpi-label">Reste</div><div class="h6 fw-bold text-warning" id="report-remaining">$0</div></div></div>
-      </div>
-      <div class="table-container">
-        <table class="table table-custom table-hover mb-0">
-          <thead><tr><th>Date Réception</th><th>Bénéficiaire</th><th>Reste à servir</th><th>Montant servi</th><th>Écart</th><th></th></tr></thead>
-          <tbody id="tbodyReport"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============ SORTIES CTN ============ -->
-    <section class="view" id="view-sortie-ctn">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-danger"></i> Sorties de Fonds CTN</h4><p class="text-muted small mb-0">Dépenses opérationnelles Cotonou</p></div>
-        <button class="btn btn-wt" onclick="openModal('modalSortieCtn')"><i class="fa-solid fa-plus"></i> Ajouter</button>
-      </div>
-      <div class="kpi-card mb-3"><div class="kpi-label">Total Dépenses CTN</div><div class="h5 fw-bold text-danger" id="totalSortieCtn">$0</div></div>
-      <div class="table-container">
-        <table class="table table-custom table-hover mb-0">
-          <thead><tr><th>Date</th><th>Libellé</th><th>Agent</th><th>Montant</th><th></th></tr></thead>
-          <tbody id="tbodySortieCtn"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============ SORTIES KIN ============ -->
-    <section class="view" id="view-sortie-kin">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div><h4 class="fw-bold mb-0"><i class="fa-solid fa-file-invoice-dollar text-danger"></i> Sorties de Fonds KIN</h4><p class="text-muted small mb-0">Dépenses et transferts vers Cotonou</p></div>
-        <button class="btn btn-wt" onclick="openModal('modalSortieKin')"><i class="fa-solid fa-plus"></i> Ajouter</button>
-      </div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><div class="kpi-card"><div class="kpi-label">Dépenses</div><div class="h6 fw-bold text-danger" id="totalDepKin">$0</div></div></div>
-        <div class="col-6"><div class="kpi-card"><div class="kpi-label">Transferts vers CTN</div><div class="h6 fw-bold text-warning" id="totalTransfKin">$0</div></div></div>
-      </div>
-      <div class="table-container">
-        <table class="table table-custom table-hover mb-0">
-          <thead><tr><th>Date</th><th>Libellé</th><th>Dépense</th><th>Transfert</th><th>Agent</th><th></th></tr></thead>
-          <tbody id="tbodySortieKin"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============ SITUATION DÉTAILLÉE ============ -->
-    <section class="view" id="view-situation">
-      <h4 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie text-primary"></i> Situation Détaillée</h4>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <div class="card-custom p-3">
-            <h5 class="fw-bold text-success"><i class="fa-solid fa-building"></i> COTONOU</h5>
-            <table class="table table-sm mb-0">
-              <tr><td>Solde initial</td><td class="text-end fw-bold" id="sit-ctn-init">$0</td></tr>
-              <tr><td>Approvisionnements</td><td class="text-end fw-bold text-success" id="sit-ctn-app">$0</td></tr>
-              <tr><td>Entrées de fonds (CTN→KIN)</td><td class="text-end fw-bold text-success" id="sit-ctn-ent">$0</td></tr>
-              <tr class="table-light"><td class="fw-bold">Sous-total entrées</td><td class="text-end fw-bold" id="sit-ctn-sub1">$0</td></tr>
-              <tr><td>Codes servis</td><td class="text-end fw-bold text-danger" id="sit-ctn-serv">$0</td></tr>
-              <tr><td>Codes en attente</td><td class="text-end fw-bold text-warning" id="sit-ctn-att">$0</td></tr>
-              <tr><td>Sorties de fonds</td><td class="text-end fw-bold text-danger" id="sit-ctn-sort">$0</td></tr>
-              <tr><td>Commissions</td><td class="text-end fw-bold text-primary" id="sit-ctn-com">$0</td></tr>
-              <tr class="table-success"><td class="fw-bold">MONTANT RESTANT</td><td class="text-end fw-bold fs-5" id="sit-ctn-rest">$0</td></tr>
-            </table>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card-custom p-3">
-            <h5 class="fw-bold text-warning"><i class="fa-solid fa-city"></i> KINSHASA</h5>
-            <table class="table table-sm mb-0">
-              <tr><td>Solde initial</td><td class="text-end fw-bold" id="sit-kin-init">$0</td></tr>
-              <tr><td>Entrées de fonds (KIN→CTN)</td><td class="text-end fw-bold text-success" id="sit-kin-ent">$0</td></tr>
-              <tr class="table-light"><td class="fw-bold">Sous-total entrées</td><td class="text-end fw-bold" id="sit-kin-sub1">$0</td></tr>
-              <tr><td>Codes servis (CTN→KIN)</td><td class="text-end fw-bold text-danger" id="sit-kin-serv">$0</td></tr>
-              <tr><td>Transferts vers CTN</td><td class="text-end fw-bold text-danger" id="sit-kin-transf">$0</td></tr>
-              <tr><td>Dépenses KIN</td><td class="text-end fw-bold text-danger" id="sit-kin-dep">$0</td></tr>
-              <tr><td>Commissions</td><td class="text-end fw-bold text-primary" id="sit-kin-com">$0</td></tr>
-              <tr class="table-warning"><td class="fw-bold">MONTANT RESTANT</td><td class="text-end fw-bold fs-5" id="sit-kin-rest">$0</td></tr>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div class="card-custom p-3 mt-3">
-        <h6 class="fw-bold"><i class="fa-solid fa-sliders"></i> Paramètres de Situation</h6>
-        <div class="row g-2">
-          <div class="col-md-6"><label class="form-label">Solde initial CTN ($)</label><input type="number" class="form-control" id="initCtn" onchange="saveSettings()"></div>
-          <div class="col-md-6"><label class="form-label">Solde initial KIN ($)</label><input type="number" class="form-control" id="initKin" onchange="saveSettings()"></div>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+        <h1>AFRI LINK LEDGER</h1>
+        <p class="hero-subtitle">
+          La solution de transfert d'argent rapide, sécurisée et transparente
+          entre le <strong>Bénin 🇧🇯</strong> et la <strong>RDC 🇨🇩</strong>.
+          Chaque envoi génère un code secret unique vérifié au retrait.
+        </p>
+        <div class="hero-features">
+          <div class="feature"><i class="fa-solid fa-bolt"></i> Rapide</div>
+          <div class="feature"><i class="fa-solid fa-shield-halved"></i> Sécurisé</div>
+          <div class="feature"><i class="fa-solid fa-check-circle"></i> Fiable</div>
+          <div class="feature"><i class="fa-solid fa-key"></i> Code secret</div>
         </div>
       </div>
     </section>
 
-    <!-- ============ SOLDE & MARGE ============ -->
-    <section class="view" id="view-solde">
-      <h4 class="fw-bold mb-3"><i class="fa-solid fa-scale-balanced text-success"></i> Compte de Résultat & Marge</h4>
-      <div class="card-custom p-3 mb-3">
-        <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-coins"></i> PRODUITS</h5>
-        <table class="table table-sm mb-0">
-          <tr><td>Commissions KIN→CTN</td><td class="text-end fw-bold text-success" id="res-com-kin">$0</td></tr>
-          <tr><td>Commissions CTN→KIN</td><td class="text-end fw-bold text-success" id="res-com-ctn">$0</td></tr>
-          <tr class="table-success"><td class="fw-bold fs-5">TOTAL PRODUITS</td><td class="text-end fw-bold fs-5" id="res-total-prod">$0</td></tr>
-        </table>
-      </div>
-      <div class="card-custom p-3 mb-3">
-        <h5 class="fw-bold text-danger mb-3"><i class="fa-solid fa-file-invoice-dollar"></i> CHARGES</h5>
-        <table class="table table-sm mb-0">
-          <tr><td>Sorties de fonds CTN</td><td class="text-end fw-bold text-danger" id="res-chg-ctn">$0</td></tr>
-          <tr><td>Sorties de fonds KIN (dépenses)</td><td class="text-end fw-bold text-danger" id="res-chg-kin">$0</td></tr>
-          <tr class="table-danger"><td class="fw-bold fs-5">TOTAL CHARGES</td><td class="text-end fw-bold fs-5" id="res-total-chg">$0</td></tr>
-        </table>
-      </div>
-      <div class="card-custom p-3 mb-3" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff;">
-        <h5 class="fw-bold mb-2" style="color:rgba(255,255,255,.9);"><i class="fa-solid fa-chart-line"></i> MARGE NETTE</h5>
-        <div style="font-size:2rem; font-weight:900;" id="res-margin">$0</div>
-        <hr style="border-color:rgba(255,255,255,.3);">
-        <div class="row">
-          <div class="col-6"><small>Taux moyen FCFA/$</small><input type="number" class="form-control form-control-sm mt-1" id="tauxMoyen" value="" onchange="renderSolde()"></div>
-          <div class="col-6"><small>Marge en FCFA</small><div class="h5 fw-bold mb-0" id="res-margin-fcfa">0 FCFA</div></div>
+    <!-- DEUX GROS BOUTONS -->
+    <section class="actions">
+      <button class="action-card action-envoi" onclick="openEnvoi()">
+        <div class="action-icon"><i class="fa-solid fa-paper-plane"></i></div>
+        <div class="action-text">
+          <h2>Envoi</h2>
+          <p>Transférer de l'argent vers Cotonou ou Kinshasa</p>
         </div>
-      </div>
-      <div class="card-custom p-3">
-        <h6 class="fw-bold"><i class="fa-solid fa-lightbulb text-warning"></i> Indicateurs Clés</h6>
-        <div class="row g-2 text-center">
-          <div class="col-6 col-md-3"><div class="kpi-label">Nb Transferts KIN→CTN</div><div class="h5 fw-bold" id="res-nb-kin">0</div></div>
-          <div class="col-6 col-md-3"><div class="kpi-label">Nb Transferts CTN→KIN</div><div class="h5 fw-bold" id="res-nb-ctn">0</div></div>
-          <div class="col-6 col-md-3"><div class="kpi-label">Taux de Marge</div><div class="h5 fw-bold text-success" id="res-rate">0%</div></div>
-          <div class="col-6 col-md-3"><div class="kpi-label">Commission Moyenne</div><div class="h5 fw-bold text-primary" id="res-avg-com">$0</div></div>
+        <i class="fa-solid fa-chevron-right action-arrow"></i>
+      </button>
+
+      <button class="action-card action-retrait" onclick="openRetrait()">
+        <div class="action-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="action-text">
+          <h2>Retrait</h2>
+          <p>Payer un bénéficiaire via son code secret</p>
         </div>
-      </div>
+        <i class="fa-solid fa-chevron-right action-arrow"></i>
+      </button>
+    </section>
+
+    <!-- LIEN COMPTABILITÉ -->
+    <section class="link-compta">
+      <a href="principal.html">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Accéder à la Comptabilité &amp; Analyse</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
     </section>
 
   </main>
-<footer>
+
+  <!-- FOOTER (uniformisé) -->
+  <footer>
     <div class="fw-bold mb-1">AFRI LINK LEDGER <span class="text-success">System</span></div>
     <div class="small text-muted mb-1">Concepteur : <strong class="text-dark">Atizoun Plateny AMOUSSOU</strong></div>
     <div class="small text-muted">
-        <i class="fa-solid fa-envelope me-1"></i>atizoun@gmail.com &nbsp;|&nbsp; 
-        <i class="fa-solid fa-phone me-1"></i>01 97 74 40 35
+      <i class="fa-solid fa-envelope me-1"></i>atizoun@gmail.com &nbsp;|&nbsp;
+      <i class="fa-solid fa-phone me-1"></i>01 97 74 40 35
     </div>
-</footer>
+  </footer>
 </div>
 
-<!-- ============ MODALS ============ -->
+<!-- ============ MODAL ENVOI ============ -->
+<div class="modal fade modal-elegant" id="modalEnvoi" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5><i class="fa-solid fa-paper-plane"></i> Nouvel Envoi d'Argent</h5>
+          <small>Transférez rapidement vers votre destination en toute sécurité</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
 
-<!-- Modal Approvisionnement -->
-<div class="modal fade" id="modalApprov" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-  <div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="fa-solid fa-sack-dollar"></i> Approvisionnement CTN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-  <div class="modal-body">
-    <input type="hidden" id="approv-id">
-    <div class="mb-2"><label class="form-label">Date</label><input type="date" class="form-control" id="approv-date"></div>
-    <div class="mb-2"><label class="form-label">Libellé</label><input type="text" class="form-control" id="approv-label" value=""></div>
-    <div class="mb-2"><label class="form-label">Source</label><select class="form-select" id="approv-source"><option value="Kinshasa">Fonds de Kinshasa</option><option value="Mr Louis">Mr Louis</option></select></div>
-    <div class="mb-2"><label class="form-label">Montant ($)</label><input type="number" step="0.01" class="form-control" id="approv-amount"></div>
-    <div class="mb-2"><label class="form-label">Statut</label><select class="form-select" id="approv-status"><option value="Reçu">Reçu</option><option value="Remboursé">Remboursé (Mr Louis)</option></select></div>
-  </div>
-  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveApprov()">Enregistrer</button></div>
-</div></div></div>
+        <!-- Choix destination -->
+        <div class="dest-selector">
+          <label><i class="fa-solid fa-location-dot text-success"></i> Où souhaitez-vous envoyer ?</label>
+          <select class="form-select" id="envoi-dest" onchange="switchEnvoiForm()">
+            <option value="">— Choisir la destination —</option>
+            <option value="ctn">🇧🇯 Vers Cotonou (Bénin)</option>
+            <option value="kin">🇨🇩 Vers Kinshasa (RDC)</option>
+          </select>
+        </div>
 
-<!-- Modal KIN→CTN -->
-<div class="modal fade" id="modalKinCtn" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-  <div class="modal-header bg-success text-white"><h5 class="modal-title"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transfert KIN → CTN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-  <div class="modal-body">
-    <input type="hidden" id="kc-id">
-    <div class="row g-2">
-      <div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" id="kc-date"></div>
-      <div class="col-6"><label class="form-label">Heure</label><input type="time" class="form-control" id="kc-time"></div>
+        <!-- Formulaire dynamique -->
+        <div class="form-section" id="envoi-form-section" style="display:none;">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control" id="envoi-date">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Heure</label>
+              <input type="time" class="form-control" id="envoi-time">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Taux du jour (FCFA/$)</label>
+              <input type="number" step="0.01" class="form-control" id="envoi-taux">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" id="envoi-exp-label">Nom de l'expéditeur</label>
+              <input type="text" class="form-control" id="envoi-exp" placeholder="Nom complet">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Téléphone expéditeur</label>
+              <input type="text" class="form-control" id="envoi-exp-phone" placeholder="+229 / +243 ...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" id="envoi-benef-label">Nom du bénéficiaire</label>
+              <input type="text" class="form-control" id="envoi-benef" placeholder="Nom complet">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Téléphone bénéficiaire</label>
+              <input type="text" class="form-control" id="envoi-benef-phone" placeholder="+229 / +243 ...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Montant Reçu ($)</label>
+              <input type="number" step="0.01" class="form-control" id="envoi-received" oninput="calcEnvoi()" placeholder="0.00">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Commission ($)</label>
+              <input type="number" step="0.01" class="form-control" id="envoi-com" oninput="calcEnvoi()" placeholder="0.00">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Montant à servir ($)</label>
+              <input type="number" step="0.01" class="form-control" id="envoi-serve" readonly>
+            </div>
+
+            <div class="col-12">
+              <div class="code-secret-box">
+                <label><i class="fa-solid fa-key"></i> CODE SECRET (à communiquer au bénéficiaire)</label>
+                <div class="code-display" id="envoi-code" onclick="copyCode()">----</div>
+                <div class="code-hint"><i class="fa-solid fa-hand-pointer"></i> Cliquer pour copier</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex gap-2">
+        <button class="btn btn-wt-secondary flex-fill" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i> Fermer</button>
+        <button class="btn btn-wt flex-fill" id="envoi-submit" onclick="saveEnvoi()" disabled><i class="fa-solid fa-check"></i> Enregistrer l'Envoi</button>
+      </div>
     </div>
-    <div class="mb-2 mt-2"><label class="form-label">Taux du jour (FCFA/$)</label><input type="number" class="form-control" id="kc-taux" value=""></div>
-    <div class="mb-2"><label class="form-label">Montant Reçu ($)</label><input type="number" step="0.01" class="form-control" id="kc-received" oninput="calcKinCtn()"></div>
-    <div class="mb-2"><label class="form-label">Commission ($)</label><input type="number" step="0.01" class="form-control" id="kc-com" oninput="calcKinCtn()"></div>
-    <div class="mb-2"><label class="form-label">Montant à servir ($)</label><input type="number" step="0.01" class="form-control" id="kc-serve" readonly></div>
-    <div class="mb-2"><label class="form-label">Montant servi ($)</label><input type="number" step="0.01" class="form-control" id="kc-served" oninput="calcKinCtn()"></div>
-    <div class="mb-2"><label class="form-label">Reste à servir ($)</label><input type="number" step="0.01" class="form-control bg-warning bg-opacity-10" id="kc-remaining" readonly></div>
-    <div class="mb-2"><label class="form-label">Bénéficiaire</label><input type="text" class="form-control" id="kc-benef"></div>
-    <div class="mb-2"><label class="form-label">Téléphone</label><input type="text" class="form-control" id="kc-phone"></div>
   </div>
-  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveKinCtn()">Enregistrer</button></div>
-</div></div></div>
+</div>
 
-<!-- Modal CTN→KIN -->
-<div class="modal fade" id="modalCtnKin" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-  <div class="modal-header bg-info text-white"><h5 class="modal-title"><i class="fa-solid fa-arrow-left"></i> Transfert CTN → KIN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-  <div class="modal-body">
-    <input type="hidden" id="ck-id">
-    <div class="row g-2">
-      <div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" id="ck-date"></div>
-      <div class="col-6"><label class="form-label">Heure</label><input type="time" class="form-control" id="ck-time"></div>
+<!-- ============ MODAL RETRAIT ============ -->
+<div class="modal fade modal-elegant" id="modalRetrait" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#0d6efd,#0a58ca);">
+        <div>
+          <h5><i class="fa-solid fa-hand-holding-dollar"></i> Retrait de Fonds</h5>
+          <small>Vérifiez le code secret du bénéficiaire puis validez le paiement</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="dest-selector">
+          <label><i class="fa-solid fa-location-dot text-primary"></i> Où le retrait a-t-il lieu ?</label>
+          <select class="form-select" id="retrait-dest" onchange="switchRetraitForm()">
+            <option value="">— Choisir l'agence de retrait —</option>
+            <option value="ctn">🇧🇯 Agence de Cotonou (Bénin)</option>
+            <option value="kin">🇨🇩 Agence de Kinshasa (RDC)</option>
+          </select>
+        </div>
+
+        <div class="form-section" id="retrait-form-section" style="display:none;">
+          <label class="form-label"><i class="fa-solid fa-key text-warning"></i> Code Secret du transfert</label>
+          <div class="input-group input-group-lg mb-2">
+            <input type="text" class="form-control" id="retrait-code" placeholder="XXXX-XXXX"
+                   style="text-transform:uppercase; letter-spacing:3px; font-weight:800; font-family:'Courier New',monospace;"
+                   oninput="lookupRetrait()" autocomplete="off">
+            <button class="btn btn-wt" onclick="lookupRetrait()"><i class="fa-solid fa-search"></i></button>
+          </div>
+
+          <div id="retrait-result"></div>
+
+          <div id="retrait-actions" style="display:none;">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Montant à payer maintenant ($)</label>
+                <input type="number" step="0.01" class="form-control form-control-lg" id="retrait-amount" oninput="calcRetraitRest()">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Nouveau reste à servir ($)</label>
+                <input type="number" step="0.01" class="form-control bg-light" id="retrait-new-remaining" readonly>
+              </div>
+            </div>
+            <button class="btn btn-wt btn-wt-lg mt-3" style="background:linear-gradient(135deg,#0d6efd,#0a58ca);" onclick="confirmRetrait()">
+              <i class="fa-solid fa-check-circle"></i> Valider le Retrait
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-wt-secondary w-100" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i> Fermer</button>
+      </div>
     </div>
-    <div class="mb-2 mt-2"><label class="form-label">Taux du jour</label><input type="number" class="form-control" id="ck-taux" value=""></div>
-    <div class="mb-2"><label class="form-label">Expéditeur</label><input type="text" class="form-control" id="ck-exp"></div>
-    <div class="mb-2"><label class="form-label">Montant Reçu ($)</label><input type="number" step="0.01" class="form-control" id="ck-received" oninput="calcCtnKin()"></div>
-    <div class="mb-2"><label class="form-label">Commission ($)</label><input type="number" step="0.01" class="form-control" id="ck-com" oninput="calcCtnKin()"></div>
-    <div class="mb-2"><label class="form-label">Montant à servir ($)</label><input type="number" step="0.01" class="form-control" id="ck-serve" readonly></div>
-    <div class="mb-2"><label class="form-label">Téléphone Bénéficiaire</label><input type="text" class="form-control" id="ck-phone"></div>
   </div>
-  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveCtnKin()">Enregistrer</button></div>
-</div></div></div>
-
-<!-- Modal Report -->
-<div class="modal fade" id="modalReport" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-  <div class="modal-header bg-warning text-dark"><h5 class="modal-title"><i class="fa-solid fa-clock-rotate-left"></i> Code Reporté</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-  <div class="modal-body">
-    <input type="hidden" id="rep-id">
-    <div class="mb-2"><label class="form-label">Date de réception</label><input type="date" class="form-control" id="rep-date"></div>
-    <div class="mb-2"><label class="form-label">Bénéficiaire</label><input type="text" class="form-control" id="rep-benef"></div>
-    <div class="mb-2"><label class="form-label">Reste à servir initial ($)</label><input type="number" step="0.01" class="form-control" id="rep-total"></div>
-    <div class="mb-2"><label class="form-label">Montant servi ($)</label><input type="number" step="0.01" class="form-control" id="rep-served" value="0"></div>
-  </div>
-  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveReport()">Enregistrer</button></div>
-</div></div></div>
-
-<!-- Modal Sortie CTN -->
-<div class="modal fade" id="modalSortieCtn" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-  <div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="fa-solid fa-receipt"></i> Sortie Fonds CTN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-  <div class="modal-body">
-    <input type="hidden" id="sc-id">
-    <div class="mb-2"><label class="form-label">Date</label><input type="date" class="form-control" id="sc-date"></div>
-    <div class="mb-2"><label class="form-label">Libellé</label><input type="text" class="form-control" id="sc-label"></div>
-    <div class="mb-2"><label class="form-label">Montant ($)</label><input type="number" step="0.01" class="form-control" id="sc-amount"></div>
-    <div class="mb-2"><label class="form-label">Agent</label><input type="text" class="form-control" id="sc-agent"></div>
-    <div class="mb-2"><label class="form-label">Observation</label><textarea class="form-control" id="sc-obs" rows="2"></textarea></div>
-  </div>
-  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveSortieCtn()">Enregistrer</button></div>
-</div></div></div>
-
-<!-- Modal Sortie KIN -->
-<div class="modal fade" id="modalSortieKin" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-  <div class="modal-header bg-danger text-white"><h5 class="modal-title"><i class="fa-solid fa-file-invoice-dollar"></i> Sortie Fonds KIN</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-  <div class="modal-body">
-    <input type="hidden" id="sk-id">
-    <div class="mb-2"><label class="form-label">Date</label><input type="date" class="form-control" id="sk-date"></div>
-    <div class="mb-2"><label class="form-label">Libellé</label><input type="text" class="form-control" id="sk-label"></div>
-    <div class="row g-2">
-      <div class="col-6"><label class="form-label">Dépense ($)</label><input type="number" step="0.01" class="form-control" id="sk-dep" value="0"></div>
-      <div class="col-6"><label class="form-label">Transfert vers CTN ($)</label><input type="number" step="0.01" class="form-control" id="sk-transf" value="0"></div>
-    </div>
-    <div class="mb-2 mt-2"><label class="form-label">Agent</label><input type="text" class="form-control" id="sk-agent"></div>
-    <div class="mb-2"><label class="form-label">Observation</label><textarea class="form-control" id="sk-obs" rows="2"></textarea></div>
-  </div>
-  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button><button class="btn btn-wt" onclick="saveSortieKin()">Enregistrer</button></div>
-</div></div></div>
+</div>
 
 <!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- ============ FIREBASE ============ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -550,75 +426,27 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 /* =========================================================
-   MONEY TRANSFERT PWA - LOGIQUE MÉTIER
+   AFRI LINK LEDGER - PAGE D'ACCUEIL (ENVOI / RETRAIT)
    ========================================================= */
 
-// ----- STORAGE & SYNC -----
 const collections = ['approv', 'kinCtn', 'ctnKin', 'report', 'sortieCtn', 'sortieKin'];
 
 let state = {
-  approv: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_approv')) || []),
-  kinCtn: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_kinCtn')) || []),
-  ctnKin: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_ctnKin')) || []),
-  report: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_report')) || []),
-  sortieCtn: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieCtn')) || []),
-  sortieKin: window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieKin')) || []),
-  settings: window.useFirebase ? {initCtn:0, initKin:0, tauxMoyen:0} : (JSON.parse(localStorage.getItem('mt_settings')) || {initCtn:0, initKin:0, tauxMoyen:0})
+  approv:   window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_approv'))   || []),
+  kinCtn:   window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_kinCtn'))   || []),
+  ctnKin:   window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_ctnKin'))   || []),
+  report:   window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_report'))   || []),
+  sortieCtn:window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieCtn'))|| []),
+  sortieKin:window.useFirebase ? [] : (JSON.parse(localStorage.getItem('mt_sortieKin'))|| []),
+  settings: window.useFirebase ? {initCtn:0, initKin:0, tauxMoyen:0}
+                               : (JSON.parse(localStorage.getItem('mt_settings')) || {initCtn:0, initKin:0, tauxMoyen:0})
 };
 
-function syncItem(collection, data) {
-  if (!window.useFirebase || !window.db) {
-    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
-    return;
-  }
-  const { id, ...rest } = data;
-  window.fbUtils.set(window.fbUtils.ref(window.db, `${collection}/${id}`), rest).catch(e => console.error("Sync error:", e));
-}
-
-function deleteItem(collection, id) {
-  if (!window.useFirebase || !window.db) {
-    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
-    return;
-  }
-  window.fbUtils.remove(window.fbUtils.ref(window.db, `${collection}/${id}`)).catch(e => console.error("Delete error:", e));
-}
-
-function syncSettings(settings) {
-  if (!window.useFirebase || !window.db) {
-    localStorage.setItem('mt_settings', JSON.stringify(settings));
-    return;
-  }
-  window.fbUtils.set(window.fbUtils.ref(window.db, 'settings'), settings).catch(e => console.error("Sync settings error:", e));
-}
-
-function setupRealtimeListeners() {
-  if (!window.useFirebase || !window.db) return;
-  
-  collections.forEach(col => {
-    window.fbUtils.onValue(window.fbUtils.ref(window.db, col), (snapshot) => {
-      const data = snapshot.val();
-      state[col] = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-      renderAll();
-    });
-  });
-
-  window.fbUtils.onValue(window.fbUtils.ref(window.db, 'settings'), (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      state.settings = data;
-      if ($('initCtn')) $('initCtn').value = state.settings.initCtn || 0;
-      if ($('initKin')) $('initKin').value = state.settings.initKin || 0;
-      if ($('tauxMoyen')) $('tauxMoyen').value = state.settings.tauxMoyen || 0;
-      renderAll();
-    }
-  });
-}
-
-// ----- UTILS -----
 const $ = id => document.getElementById(id);
 const fmt = n => '$'+(Number(n)||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const uid = () => Date.now().toString(36)+Math.random().toString(36).substr(2,5);
 const today = () => new Date().toISOString().split('T')[0];
+const nowTime = () => new Date().toTimeString().slice(0,5);
 
 function toast(msg, type='success') {
   const colors = {success:'bg-success',danger:'bg-danger',warning:'bg-warning',info:'bg-info'};
@@ -626,570 +454,318 @@ function toast(msg, type='success') {
   el.className = `toast show ${colors[type]} text-white`;
   el.innerHTML = `<div class="toast-body d-flex justify-content-between align-items-center">${msg}<button class="btn-close btn-close-white ms-2" onclick="this.parentElement.parentElement.remove()"></button></div>`;
   $('toastContainer').appendChild(el);
-  setTimeout(()=>el.remove(), 3000);
+  setTimeout(()=>el.remove(), 3200);
 }
 
-// ----- NAVIGATION -----
+/* ---- SYNC ---- */
+function syncItem(collection, data) {
+  if (!window.useFirebase || !window.db) {
+    localStorage.setItem('mt_' + collection, JSON.stringify(state[collection]));
+    return;
+  }
+  const { id, ...rest } = data;
+  window.fbUtils.set(window.fbUtils.ref(window.db, `${collection}/${id}`), rest)
+    .catch(e => console.error("Sync error:", e));
+}
+
+function setupRealtimeListeners() {
+  if (!window.useFirebase || !window.db) return;
+  collections.forEach(col => {
+    window.fbUtils.onValue(window.fbUtils.ref(window.db, col), (snapshot) => {
+      const data = snapshot.val();
+      state[col] = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+    });
+  });
+  window.fbUtils.onValue(window.fbUtils.ref(window.db, 'settings'), (snapshot) => {
+    const data = snapshot.val();
+    if (data) state.settings = data;
+  });
+}
+
+/* ---- NAV ---- */
 function toggleSidebar(open) {
   $('sidebar').classList.toggle('open', open);
   $('overlay').classList.toggle('show', open);
 }
-function showView(name) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  $('view-'+name).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const nav = document.querySelector(`.nav-item[data-view="${name}"]`);
-  if(nav) nav.classList.add('active');
-  toggleSidebar(false);
-  renderAll();
-}
-function openModal(id) { new bootstrap.Modal($(id)).show(); }
-function closeModal(id) { bootstrap.Modal.getInstance($(id))?.hide(); }
 
-// ----- APPROVISIONNEMENTS -----
-function saveApprov() {
-  const id = $('approv-id').value;
-  const data = {
-    id: id || uid(),
-    date: $('approv-date').value || today(),
-    label: $('approv-label').value,
-    source: $('approv-source').value,
-    amount: parseFloat($('approv-amount').value)||0,
-    status: $('approv-status').value
-  };
-  if(!data.amount) return toast('Montant requis','danger');
-  if(id) { const i = state.approv.findIndex(a=>a.id===id); if(i!==-1) state.approv[i]=data; }
-  else state.approv.push(data);
-  
-  syncItem('approv', data);
-  closeModal('modalApprov'); resetForm('approv');
-  renderAll(); toast('Approvisionnement enregistré');
+/* ---- CODE SECRET ---- */
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans I,O,0,1 (ambiguïté)
+  let c = '';
+  for (let i = 0; i < 8; i++) c += chars[Math.floor(Math.random()*chars.length)];
+  return c.slice(0,4) + '-' + c.slice(4);
 }
-function editApprov(id) {
-  const d = state.approv.find(a=>a.id===id);
-  $('approv-id').value=d.id; $('approv-date').value=d.date; $('approv-label').value=d.label;
-  $('approv-source').value=d.source; $('approv-amount').value=d.amount; $('approv-status').value=d.status;
-  openModal('modalApprov');
+
+function copyCode() {
+  const code = $('envoi-code').textContent;
+  if (!code || code === '----') return;
+  navigator.clipboard?.writeText(code).then(()=>toast('Code copié !','success')).catch(()=>{});
 }
-function delApprov(id) {
-  if(!confirm('Supprimer cet approvisionnement ?')) return;
-  state.approv = state.approv.filter(a=>a.id!==id);
-  deleteItem('approv', id);
-  renderAll(); toast('Supprimé','warning');
+
+/* =========================================================
+   ENVOI
+   ========================================================= */
+function openEnvoi() {
+  $('envoi-dest').value = '';
+  $('envoi-form-section').style.display = 'none';
+  $('envoi-submit').disabled = true;
+  // Reset champs
+  ['envoi-exp','envoi-exp-phone','envoi-benef','envoi-benef-phone','envoi-received','envoi-com'].forEach(i => $(i).value = '');
+  $('envoi-serve').value = '';
+  $('envoi-code').textContent = '----';
+  new bootstrap.Modal($('modalEnvoi')).show();
 }
-function renderApprov() {
-  const tb = $('tbodyApprov');
-  if(!state.approv.length) { tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucun approvisionnement</td></tr>'; }
-  else {
-    tb.innerHTML = state.approv.sort((a,b)=>b.date.localeCompare(a.date)).map(a=>`
-      <tr>
-        <td>${a.date}</td>
-        <td>${a.label}</td>
-        <td><span class="badge bg-${a.source==='Mr Louis'?'warning':'primary'}">${a.source}</span></td>
-        <td class="fw-bold text-success">${fmt(a.amount)}</td>
-        <td><span class="badge bg-${a.status==='Remboursé'?'secondary':'success'}">${a.status}</span></td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-outline-primary" onclick="editApprov('${a.id}')"><i class="fa-solid fa-edit"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="delApprov('${a.id}')"><i class="fa-solid fa-trash"></i></button>
-        </td>
-      </tr>`).join('');
+
+function switchEnvoiForm() {
+  const dest = $('envoi-dest').value;
+  if (!dest) {
+    $('envoi-form-section').style.display = 'none';
+    $('envoi-submit').disabled = true;
+    return;
   }
-  $('totalApprov').textContent = fmt(state.approv.reduce((s,a)=>s+a.amount,0));
-  $('totalLouis').textContent = fmt(state.approv.filter(a=>a.source==='Mr Louis').reduce((s,a)=>s+a.amount,0));
-}
+  $('envoi-form-section').style.display = 'block';
+  $('envoi-submit').disabled = false;
 
-// ----- KIN → CTN -----
-function calcKinCtn() {
-  const r = parseFloat($('kc-received').value)||0;
-  const c = parseFloat($('kc-com').value)||0;
-  const s = parseFloat($('kc-served').value)||0;
-  $('kc-serve').value = (r-c).toFixed(2);
-  const toServe = r-c;
-  $('kc-remaining').value = (toServe-s).toFixed(2);
-}
-function saveKinCtn() {
-  const id = $('kc-id').value;
-  const data = {
-    id: id || uid(),
-    date: $('kc-date').value || today(),
-    time: $('kc-time').value,
-    taux: parseFloat($('kc-taux').value)||0,
-    received: parseFloat($('kc-received').value)||0,
-    commission: parseFloat($('kc-com').value)||0,
-    toServe: parseFloat($('kc-serve').value)||0,
-    served: parseFloat($('kc-served').value)||0,
-    remaining: parseFloat($('kc-remaining').value)||0,
-    benef: $('kc-benef').value,
-    phone: $('kc-phone').value
-  };
-  if(!data.received) return toast('Montant requis','danger');
-  if(id) { const i = state.kinCtn.findIndex(a=>a.id===id); if(i!==-1) state.kinCtn[i]=data; }
-  else state.kinCtn.push(data);
-  
-  syncItem('kinCtn', data);
-  closeModal('modalKinCtn'); resetForm('kc');
-  renderAll(); toast('Transfert enregistré');
-}
-function editKinCtn(id) {
-  const d = state.kinCtn.find(a=>a.id===id);
-  $('kc-id').value=d.id; $('kc-date').value=d.date; $('kc-time').value=d.time;
-  $('kc-taux').value=d.taux; $('kc-received').value=d.received; $('kc-com').value=d.commission;
-  $('kc-served').value=d.served; $('kc-benef').value=d.benef; $('kc-phone').value=d.phone||'';
-  calcKinCtn(); openModal('modalKinCtn');
-}
-function delKinCtn(id) {
-  if(!confirm('Supprimer ce transfert ?')) return;
-  state.kinCtn = state.kinCtn.filter(a=>a.id!==id);
-  deleteItem('kinCtn', id);
-  renderAll(); toast('Supprimé','warning');
-}
-function renderKinCtn(filter='') {
-  const tb = $('tbodyKinCtn');
-  let list = state.kinCtn.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  if(filter) list = list.filter(t=>(t.benef||'').toLowerCase().includes(filter.toLowerCase()));
-  if(!list.length) tb.innerHTML='<tr><td colspan="8" class="text-center text-muted py-3">Aucun transfert</td></tr>';
-  else tb.innerHTML = list.map(t=>`
-    <tr>
-      <td>${t.date}</td>
-      <td class="small">${t.time||'-'}</td>
-      <td class="fw-bold">${t.benef}</td>
-      <td class="text-success">${fmt(t.received)}</td>
-      <td class="text-primary">${fmt(t.commission)}</td>
-      <td class="text-info">${fmt(t.served)}</td>
-      <td class="${t.remaining>0?'text-danger fw-bold':'text-muted'}">${fmt(t.remaining)}</td>
-      <td class="text-end text-nowrap">
-        <button class="btn btn-sm btn-outline-primary" onclick="editKinCtn('${t.id}')"><i class="fa-solid fa-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delKinCtn('${t.id}')"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`).join('');
-  const total = state.kinCtn;
-  $('kinCtn-received').textContent = fmt(total.reduce((s,t)=>s+t.received,0));
-  $('kinCtn-com').textContent = fmt(total.reduce((s,t)=>s+t.commission,0));
-  $('kinCtn-served').textContent = fmt(total.reduce((s,t)=>s+t.served,0));
-  $('kinCtn-remaining').textContent = fmt(total.reduce((s,t)=>s+t.remaining,0));
-}
+  // Pré-remplissage intelligent
+  $('envoi-date').value = $('envoi-date').value || today();
+  $('envoi-time').value = $('envoi-time').value || nowTime();
+  $('envoi-taux').value = $('envoi-taux').value || (state.settings.tauxMoyen || '');
+  $('envoi-code').textContent = generateCode();
 
-// ----- CTN → KIN -----
-function calcCtnKin() {
-  const r = parseFloat($('ck-received').value)||0;
-  const c = parseFloat($('ck-com').value)||0;
-  $('ck-serve').value = (r-c).toFixed(2);
-}
-function saveCtnKin() {
-  const id = $('ck-id').value;
-  const data = {
-    id: id || uid(),
-    date: $('ck-date').value || today(),
-    time: $('ck-time').value,
-    taux: parseFloat($('ck-taux').value)||0,
-    exp: $('ck-exp').value,
-    received: parseFloat($('ck-received').value)||0,
-    commission: parseFloat($('ck-com').value)||0,
-    toServe: parseFloat($('ck-serve').value)||0,
-    phone: $('ck-phone').value
-  };
-  if(!data.received) return toast('Montant requis','danger');
-  if(id) { const i = state.ctnKin.findIndex(a=>a.id===id); if(i!==-1) state.ctnKin[i]=data; }
-  else state.ctnKin.push(data);
-  
-  syncItem('ctnKin', data);
-  closeModal('modalCtnKin'); resetForm('ck');
-  renderAll(); toast('Transfert enregistré');
-}
-function editCtnKin(id) {
-  const d = state.ctnKin.find(a=>a.id===id);
-  $('ck-id').value=d.id; $('ck-date').value=d.date; $('ck-time').value=d.time;
-  $('ck-taux').value=d.taux; $('ck-exp').value=d.exp; $('ck-received').value=d.received;
-  $('ck-com').value=d.commission; $('ck-phone').value=d.phone||'';
-  calcCtnKin(); openModal('modalCtnKin');
-}
-function delCtnKin(id) {
-  if(!confirm('Supprimer ?')) return;
-  state.ctnKin = state.ctnKin.filter(a=>a.id!==id);
-  deleteItem('ctnKin', id);
-  renderAll(); toast('Supprimé','warning');
-}
-function renderCtnKin() {
-  const tb = $('tbodyCtnKin');
-  if(!state.ctnKin.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucun transfert</td></tr>';
-  else tb.innerHTML = state.ctnKin.sort((a,b)=>b.date.localeCompare(a.date)).map(t=>`
-    <tr>
-      <td>${t.date}</td>
-      <td class="fw-bold">${t.exp}</td>
-      <td class="text-success">${fmt(t.received)}</td>
-      <td class="text-primary">${fmt(t.commission)}</td>
-      <td class="text-info">${fmt(t.toServe)}</td>
-      <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary" onclick="editCtnKin('${t.id}')"><i class="fa-solid fa-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delCtnKin('${t.id}')"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`).join('');
-  $('ctnKin-received').textContent = fmt(state.ctnKin.reduce((s,t)=>s+t.received,0));
-  $('ctnKin-com').textContent = fmt(state.ctnKin.reduce((s,t)=>s+t.commission,0));
-  $('ctnKin-serve').textContent = fmt(state.ctnKin.reduce((s,t)=>s+t.toServe,0));
-}
-
-// ----- REPORT -----
-function saveReport() {
-  const id = $('rep-id').value;
-  const data = {
-    id: id || uid(),
-    date: $('rep-date').value || today(),
-    benef: $('rep-benef').value,
-    total: parseFloat($('rep-total').value)||0,
-    served: parseFloat($('rep-served').value)||0
-  };
-  if(!data.total) return toast('Montant requis','danger');
-  if(id) { const i = state.report.findIndex(a=>a.id===id); if(i!==-1) state.report[i]=data; }
-  else state.report.push(data);
-  
-  syncItem('report', data);
-  closeModal('modalReport'); resetForm('rep');
-  renderAll(); toast('Code reporté enregistré');
-}
-function editReport(id) {
-  const d = state.report.find(a=>a.id===id);
-  $('rep-id').value=d.id; $('rep-date').value=d.date; $('rep-benef').value=d.benef;
-  $('rep-total').value=d.total; $('rep-served').value=d.served;
-  openModal('modalReport');
-}
-function delReport(id) {
-  if(!confirm('Supprimer ?')) return;
-  state.report = state.report.filter(a=>a.id!==id);
-  deleteItem('report', id);
-  renderAll(); toast('Supprimé','warning');
-}
-function renderReport() {
-  const tb = $('tbodyReport');
-  if(!state.report.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucun code reporté</td></tr>';
-  else tb.innerHTML = state.report.sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
-    const ecart = r.total - r.served;
-    return `<tr>
-      <td>${r.date}</td>
-      <td class="fw-bold">${r.benef}</td>
-      <td class="text-danger">${fmt(r.total)}</td>
-      <td class="text-success">${fmt(r.served)}</td>
-      <td class="${ecart>0?'text-warning fw-bold':'text-success'}">${fmt(ecart)}</td>
-      <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary" onclick="editReport('${r.id}')"><i class="fa-solid fa-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delReport('${r.id}')"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`;
-  }).join('');
-  const tot = state.report.reduce((s,r)=>s+r.total,0);
-  const ser = state.report.reduce((s,r)=>s+r.served,0);
-  $('report-total').textContent = fmt(tot);
-  $('report-served').textContent = fmt(ser);
-  $('report-remaining').textContent = fmt(tot-ser);
-}
-
-// ----- SORTIES CTN -----
-function saveSortieCtn() {
-  const id = $('sc-id').value;
-  const data = {
-    id: id || uid(),
-    date: $('sc-date').value || today(),
-    label: $('sc-label').value,
-    amount: parseFloat($('sc-amount').value)||0,
-    agent: $('sc-agent').value,
-    obs: $('sc-obs').value
-  };
-  if(!data.amount) return toast('Montant requis','danger');
-  if(id) { const i = state.sortieCtn.findIndex(a=>a.id===id); if(i!==-1) state.sortieCtn[i]=data; }
-  else state.sortieCtn.push(data);
-  
-  syncItem('sortieCtn', data);
-  closeModal('modalSortieCtn'); resetForm('sc');
-  renderAll(); toast('Sortie enregistrée');
-}
-function editSortieCtn(id) {
-  const d = state.sortieCtn.find(a=>a.id===id);
-  $('sc-id').value=d.id; $('sc-date').value=d.date; $('sc-label').value=d.label;
-  $('sc-amount').value=d.amount; $('sc-agent').value=d.agent; $('sc-obs').value=d.obs||'';
-  openModal('modalSortieCtn');
-}
-function delSortieCtn(id) {
-  if(!confirm('Supprimer ?')) return;
-  state.sortieCtn = state.sortieCtn.filter(a=>a.id!==id);
-  deleteItem('sortieCtn', id);
-  renderAll(); toast('Supprimé','warning');
-}
-function renderSortieCtn() {
-  const tb = $('tbodySortieCtn');
-  if(!state.sortieCtn.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucune sortie</td></tr>';
-  else tb.innerHTML = state.sortieCtn.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`
-    <tr>
-      <td>${s.date}</td>
-      <td>${s.label}</td>
-      <td class="small">${s.agent}</td>
-      <td class="fw-bold text-danger">${fmt(s.amount)}</td>
-      <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary" onclick="editSortieCtn('${s.id}')"><i class="fa-solid fa-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delSortieCtn('${s.id}')"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`).join('');
-  $('totalSortieCtn').textContent = fmt(state.sortieCtn.reduce((s,a)=>s+a.amount,0));
-}
-
-// ----- SORTIES KIN -----
-function saveSortieKin() {
-  const id = $('sk-id').value;
-  const data = {
-    id: id || uid(),
-    date: $('sk-date').value || today(),
-    label: $('sk-label').value,
-    depense: parseFloat($('sk-dep').value)||0,
-    transfert: parseFloat($('sk-transf').value)||0,
-    agent: $('sk-agent').value,
-    obs: $('sk-obs').value
-  };
-  if(!data.depense && !data.transfert) return toast('Montant requis','danger');
-  if(id) { const i = state.sortieKin.findIndex(a=>a.id===id); if(i!==-1) state.sortieKin[i]=data; }
-  else state.sortieKin.push(data);
-  
-  syncItem('sortieKin', data);
-  closeModal('modalSortieKin'); resetForm('sk');
-  renderAll(); toast('Sortie enregistrée');
-}
-function editSortieKin(id) {
-  const d = state.sortieKin.find(a=>a.id===id);
-  $('sk-id').value=d.id; $('sk-date').value=d.date; $('sk-label').value=d.label;
-  $('sk-dep').value=d.depense; $('sk-transf').value=d.transfert;
-  $('sk-agent').value=d.agent; $('sk-obs').value=d.obs||'';
-  openModal('modalSortieKin');
-}
-function delSortieKin(id) {
-  if(!confirm('Supprimer ?')) return;
-  state.sortieKin = state.sortieKin.filter(a=>a.id!==id);
-  deleteItem('sortieKin', id);
-  renderAll(); toast('Supprimé','warning');
-}
-function renderSortieKin() {
-  const tb = $('tbodySortieKin');
-  if(!state.sortieKin.length) tb.innerHTML='<tr><td colspan="6" class="text-center text-muted py-3">Aucune sortie</td></tr>';
-  else tb.innerHTML = state.sortieKin.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`
-    <tr>
-      <td>${s.date}</td>
-      <td>${s.label}</td>
-      <td class="${s.depense?'text-danger fw-bold':'text-muted'}">${s.depense?fmt(s.depense):'-'}</td>
-      <td class="${s.transfert?'text-warning fw-bold':'text-muted'}">${s.transfert?fmt(s.transfert):'-'}</td>
-      <td class="small">${s.agent}</td>
-      <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary" onclick="editSortieKin('${s.id}')"><i class="fa-solid fa-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delSortieKin('${s.id}')"><i class="fa-solid fa-trash"></i></button>
-      </td>
-    </tr>`).join('');
-  $('totalDepKin').textContent = fmt(state.sortieKin.reduce((s,a)=>s+a.depense,0));
-  $('totalTransfKin').textContent = fmt(state.sortieKin.reduce((s,a)=>s+a.transfert,0));
-}
-
-// ----- SITUATION -----
-function renderSituation() {
-  $('initCtn').value = state.settings.initCtn;
-  $('initKin').value = state.settings.initKin;
-  const approv = state.approv.reduce((s,a)=>s+a.amount,0);
-  const entCtn = state.ctnKin.reduce((s,t)=>s+t.received,0);
-  const servCtn = state.kinCtn.reduce((s,t)=>s+t.served,0) + state.report.reduce((s,r)=>s+r.served,0);
-  const attCtn = state.report.reduce((s,r)=>s+(r.total-r.served),0);
-  const sortCtn = state.sortieCtn.reduce((s,a)=>s+a.amount,0);
-  const comCtn = state.ctnKin.reduce((s,t)=>s+t.commission,0);
-
-  $('sit-ctn-init').textContent = fmt(state.settings.initCtn);
-  $('sit-ctn-app').textContent = fmt(approv);
-  $('sit-ctn-ent').textContent = fmt(entCtn);
-  $('sit-ctn-sub1').textContent = fmt(state.settings.initCtn+approv+entCtn);
-  $('sit-ctn-serv').textContent = fmt(servCtn);
-  $('sit-ctn-att').textContent = fmt(attCtn);
-  $('sit-ctn-sort').textContent = fmt(sortCtn);
-  $('sit-ctn-com').textContent = fmt(comCtn);
-  const restCtn = state.settings.initCtn+approv+entCtn-servCtn-sortCtn+comCtn;
-  $('sit-ctn-rest').textContent = fmt(restCtn);
-
-  const entKin = state.kinCtn.reduce((s,t)=>s+t.received,0);
-  const servKin = state.ctnKin.reduce((s,t)=>s+t.toServe,0);
-  const transfKin = state.sortieKin.reduce((s,a)=>s+a.transfert,0);
-  const depKin = state.sortieKin.reduce((s,a)=>s+a.depense,0);
-  const comKin = state.kinCtn.reduce((s,t)=>s+t.commission,0);
-
-  $('sit-kin-init').textContent = fmt(state.settings.initKin);
-  $('sit-kin-ent').textContent = fmt(entKin);
-  $('sit-kin-sub1').textContent = fmt(state.settings.initKin+entKin);
-  $('sit-kin-serv').textContent = fmt(servKin);
-  $('sit-kin-transf').textContent = fmt(transfKin);
-  $('sit-kin-dep').textContent = fmt(depKin);
-  $('sit-kin-com').textContent = fmt(comKin);
-  const restKin = state.settings.initKin+entKin-servKin-transfKin-depKin+comKin;
-  $('sit-kin-rest').textContent = fmt(restKin);
-}
-function saveSettings() {
-  state.settings.initCtn = parseFloat($('initCtn').value)||0;
-  state.settings.initKin = parseFloat($('initKin').value)||0;
-  state.settings.tauxMoyen = parseFloat($('tauxMoyen').value)||0;
-  syncSettings(state.settings);
-  renderAll();
-}
-
-// ----- SOLDE -----
-function renderSolde() {
-  const comKin = state.kinCtn.reduce((s,t)=>s+t.commission,0);
-  const comCtn = state.ctnKin.reduce((s,t)=>s+t.commission,0);
-  const totalProd = comKin+comCtn;
-  const chgCtn = state.sortieCtn.reduce((s,a)=>s+a.amount,0);
-  const chgKin = state.sortieKin.reduce((s,a)=>s+a.depense,0);
-  const totalChg = chgCtn+chgKin;
-  const margin = totalProd-totalChg;
-  const taux = parseFloat($('tauxMoyen').value)||0;
-
-  $('res-com-kin').textContent = fmt(comKin);
-  $('res-com-ctn').textContent = fmt(comCtn);
-  $('res-total-prod').textContent = fmt(totalProd);
-  $('res-chg-ctn').textContent = fmt(chgCtn);
-  $('res-chg-kin').textContent = fmt(chgKin);
-  $('res-total-chg').textContent = fmt(totalChg);
-  $('res-margin').textContent = fmt(margin);
-  $('res-margin-fcfa').textContent = (margin*taux).toLocaleString('fr-FR',{maximumFractionDigits:2})+' FCFA';
-  $('res-nb-kin').textContent = state.kinCtn.length;
-  $('res-nb-ctn').textContent = state.ctnKin.length;
-  const totalVol = state.kinCtn.reduce((s,t)=>s+t.received,0)+state.ctnKin.reduce((s,t)=>s+t.received,0);
-  $('res-rate').textContent = totalVol?((margin/totalVol)*100).toFixed(2)+'%':'0%';
-  const nb = state.kinCtn.length+state.ctnKin.length;
-  $('res-avg-com').textContent = fmt(nb?totalProd/nb:0);
-
-  // Dashboard KPIs
-  $('kpi-received-kin').textContent = fmt(state.kinCtn.reduce((s,t)=>s+t.received,0));
-  $('kpi-com-kin').textContent = fmt(comKin);
-  $('kpi-served').textContent = fmt(state.kinCtn.reduce((s,t)=>s+t.served,0));
-  $('kpi-remaining').textContent = fmt(state.kinCtn.reduce((s,t)=>s+t.remaining,0));
-  $('kpi-com-ctn').textContent = fmt(comCtn);
-  $('kpi-com-total').textContent = fmt(totalProd);
-  $('kpi-charges-ctn').textContent = fmt(chgCtn);
-  $('kpi-charges-kin').textContent = fmt(chgKin);
-  $('kpi-margin').textContent = fmt(margin);
-  $('kpi-caisse-ctn').textContent = fmt(state.settings.initCtn+state.approv.reduce((s,a)=>s+a.amount,0)+state.ctnKin.reduce((s,t)=>s+t.received,0)-state.kinCtn.reduce((s,t)=>s+t.served,0)-state.report.reduce((s,r)=>s+r.served,0)-chgCtn+comCtn);
-  $('kpi-caisse-kin').textContent = fmt(state.settings.initKin+state.kinCtn.reduce((s,t)=>s+t.received,0)-state.ctnKin.reduce((s,t)=>s+t.toServe,0)-state.sortieKin.reduce((s,a)=>s+a.transfert+s.depense,0)+comKin);
-}
-
-// ----- DASHBOARD -----
-function renderDashboard() {
-  const all = [
-    ...state.kinCtn.map(t=>({date:t.date,time:t.time,type:'KIN→CTN',desc:t.benef,amount:t.received,color:'success'})),
-    ...state.ctnKin.map(t=>({date:t.date,time:t.time,type:'CTN→KIN',desc:t.exp,amount:t.received,color:'info'})),
-    ...state.approv.map(a=>({date:a.date,time:'',type:'APPROV',desc:a.source,amount:a.amount,color:'primary'}))
-  ].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,8);
-  if(!all.length) $('recentTransactions').innerHTML='<p class="text-muted text-center py-3 mb-0">Aucune transaction récente</p>';
-  else $('recentTransactions').innerHTML = all.map(t=>`
-    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-      <div><span class="badge bg-${t.color} me-1">${t.type}</span><span class="fw-bold">${t.desc}</span><div class="text-muted small">${t.date} ${t.time||''}</div></div>
-      <div class="fw-bold text-success">${fmt(t.amount)}</div>
-    </div>`).join('');
-}
-
-// ----- HELPERS -----
-function resetForm(prefix) {
-  document.querySelectorAll(`#${prefix}-id, #${prefix}-date, #${prefix}-time, #${prefix}-label, #${prefix}-amount, #${prefix}-benef, #${prefix}-phone, #${prefix}-exp, #${prefix}-received, #${prefix}-com, #${prefix}-served, #${prefix}-serve, #${prefix}-remaining, #${prefix}-taux, #${prefix}-agent, #${prefix}-obs, #${prefix}-dep, #${prefix}-transf, #${prefix}-total, #${prefix}-source, #${prefix}-status`).forEach(el=>{
-    if(el.tagName==='SELECT') el.selectedIndex=0;
-    else if(el.type==='number') el.value = '0';
-    else el.value='';
-  });
-}
-
-function renderAll() {
-  renderApprov(); renderKinCtn(); renderCtnKin(); renderReport();
-  renderSortieCtn(); renderSortieKin(); renderSituation(); renderSolde(); renderDashboard();
-}
-
-// ----- EXPORT / IMPORT -----
-function exportData() {
-  const data = {
-    version:'1.0', exportDate:new Date().toISOString(),
-    approv:state.approv, kinCtn:state.kinCtn, ctnKin:state.ctnKin,
-    report:state.report, sortieCtn:state.sortieCtn, sortieKin:state.sortieKin,
-    settings:state.settings
-  };
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download=`MoneyTransfert_${today()}.json`; a.click();
-  URL.revokeObjectURL(url);
-  toast('Export réussi');
-}
-function importData(e) {
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if(!confirm('Remplacer toutes les données actuelles ?')) return;
-      
-      if (window.useFirebase && window.db) {
-        toast("Importation vers le cloud en cours...", "info");
-        ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
-          if(data[k]) { 
-            state[k] = data[k];
-            data[k].forEach(item => syncItem(k, item));
-          }
-        });
-        if(data.settings) {
-          state.settings = data.settings;
-          syncSettings(data.settings);
-        }
-      } else {
-        ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin'].forEach(k=>{
-          if(data[k]) { state[k]=data[k]; localStorage.setItem('mt_'+k, JSON.stringify(data[k])); }
-        });
-        if(data.settings) { state.settings=data.settings; localStorage.setItem('mt_settings', JSON.stringify(data.settings)); }
-      }
-      
-      renderAll(); toast('Import réussi');
-    } catch(err) { toast('Fichier invalide','danger'); }
-  };
-  reader.readAsText(file);
-  e.target.value='';
-}
-async function resetData() {
-  if(!confirm('⚠️ Supprimer TOUTES les données ? Cette action est irréversible.')) return;
-  if(!confirm('Confirmer la suppression définitive ?')) return;
-  
-  if (window.useFirebase && window.db) {
-    toast("Nettoyage du cloud en cours...", "info");
-    const updates = {};
-    collections.forEach(col => { updates[col] = null; });
-    updates['settings'] = null;
-    await window.fbUtils.update(window.fbUtils.ref(window.db), updates);
+  // Adaptation des libellés selon destination
+  if (dest === 'ctn') {
+    $('envoi-exp-label').textContent = "Nom de l'expéditeur (Kinshasa)";
+    $('envoi-benef-label').textContent = 'Nom du bénéficiaire (Cotonou)';
+  } else {
+    $('envoi-exp-label').textContent = "Nom de l'expéditeur (Cotonou)";
+    $('envoi-benef-label').textContent = 'Nom du bénéficiaire (Kinshasa)';
   }
-  
-  ['approv','kinCtn','ctnKin','report','sortieCtn','sortieKin','settings'].forEach(k=>localStorage.removeItem('mt_'+k));
-  location.reload();
 }
 
-// ----- NETWORK STATUS -----
+function calcEnvoi() {
+  const r = parseFloat($('envoi-received').value) || 0;
+  const c = parseFloat($('envoi-com').value) || 0;
+  const s = r - c;
+  $('envoi-serve').value = s > 0 ? s.toFixed(2) : '0.00';
+}
+
+function saveEnvoi() {
+  const dest = $('envoi-dest').value;
+  if (!dest) return toast('Choisissez la destination', 'danger');
+
+  const received   = parseFloat($('envoi-received').value) || 0;
+  const commission = parseFloat($('envoi-com').value) || 0;
+  const toServe    = received - commission;
+  const code       = $('envoi-code').textContent;
+
+  if (received <= 0)                return toast('Montant reçu requis', 'danger');
+  if (!($('envoi-exp').value))      return toast("Nom de l'expéditeur requis", 'danger');
+  if (!($('envoi-benef').value))    return toast('Nom du bénéficiaire requis', 'danger');
+  if (!code || code === '----')     return toast('Code secret non généré', 'danger');
+
+  const id = uid();
+  const expName    = $('envoi-exp').value;
+  const expPhone   = $('envoi-exp-phone').value;
+  const benefName  = $('envoi-benef').value;
+  const benefPhone = $('envoi-benef-phone').value;
+  const tauxVal    = parseFloat($('envoi-taux').value) || 0;
+
+  if (dest === 'ctn') {
+    /* === Envoi VERS COTONOU → AGENCE COTONOU (BÉNIN) → collection ctnKin === */
+    const data = {
+      id,
+      date: $('envoi-date').value || today(),
+      time: $('envoi-time').value || nowTime(),
+      taux: tauxVal,
+      exp: expName,
+      sender: expName,
+      senderPhone: expPhone,
+      benef: benefName,
+      phone: benefPhone,
+      received, commission, toServe,
+      served: 0,
+      remaining: toServe,
+      code,
+      type: 'envoi'
+    };
+    state.ctnKin.push(data);
+    syncItem('ctnKin', data);
+  } else {
+    /* === Envoi VERS KINSHASA → AGENCE KINSHASA (RDC) → collection kinCtn === */
+    const data = {
+      id,
+      date: $('envoi-date').value || today(),
+      time: $('envoi-time').value || nowTime(),
+      taux: tauxVal,
+      exp: expName,
+      sender: expName,
+      senderPhone: expPhone,
+      benef: benefName,
+      phone: benefPhone,
+      received, commission, toServe,
+      served: 0,
+      remaining: toServe,
+      code,
+      type: 'envoi'
+    };
+    state.kinCtn.push(data);
+    syncItem('kinCtn', data);
+  }
+
+  toast(`Envoi enregistré • Code : ${code}`, 'success');
+  bootstrap.Modal.getInstance($('modalEnvoi'))?.hide();
+}
+
+/* =========================================================
+   RETRAIT
+   ========================================================= */
+let currentRetrait = null;
+
+function openRetrait() {
+  $('retrait-dest').value = '';
+  $('retrait-code').value = '';
+  $('retrait-form-section').style.display = 'none';
+  $('retrait-result').innerHTML = '';
+  $('retrait-actions').style.display = 'none';
+  currentRetrait = null;
+  new bootstrap.Modal($('modalRetrait')).show();
+}
+
+function switchRetraitForm() {
+  const dest = $('retrait-dest').value;
+  if (!dest) {
+    $('retrait-form-section').style.display = 'none';
+    return;
+  }
+  $('retrait-form-section').style.display = 'block';
+  $('retrait-code').value = '';
+  $('retrait-result').innerHTML = '';
+  $('retrait-actions').style.display = 'none';
+  currentRetrait = null;
+  setTimeout(() => $('retrait-code').focus(), 200);
+}
+
+function lookupRetrait() {
+  const code = $('retrait-code').value.trim().toUpperCase();
+  const dest = $('retrait-dest').value;
+  const resultBox = $('retrait-result');
+  $('retrait-actions').style.display = 'none';
+  currentRetrait = null;
+
+  if (!code || !dest) { resultBox.innerHTML = ''; return; }
+  if (code.length < 8) { resultBox.innerHTML = ''; return; }
+
+  /* Agence de retrait = agence de destination de l'envoi :
+     - Retrait à COTONOU  → recherche dans ctnKin (AGENCE COTONOU)
+     - Retrait à KINSHASA → recherche dans kinCtn (AGENCE KINSHASA) */
+  const collection = dest === 'ctn' ? 'ctnKin' : 'kinCtn';
+  const record = state[collection].find(r => (r.code || '').toUpperCase() === code);
+
+  if (!record) {
+    resultBox.innerHTML = '<div class="retrait-error"><i class="fa-solid fa-triangle-exclamation"></i> Aucun transfert trouvé avec ce code à cette agence.</div>';
+    return;
+  }
+
+  const toServe = record.toServe || 0;
+  const served  = record.served  || 0;
+  const remaining = toServe - served;
+
+  if (remaining <= 0) {
+    resultBox.innerHTML = '<div class="retrait-success"><i class="fa-solid fa-circle-check"></i> Ce transfert a déjà été entièrement servi.</div>';
+    return;
+  }
+
+  const benefName  = record.benef || record.exp || '—';
+  const benefPhone = record.phone || record.senderPhone || '—';
+
+  currentRetrait = { record, collection, remaining };
+
+  resultBox.innerHTML = `
+    <div class="retrait-info">
+      <div class="info-row"><span class="label">Bénéficiaire</span><span class="value">${benefName}</span></div>
+      <div class="info-row"><span class="label">Téléphone</span><span class="value">${benefPhone}</span></div>
+      <div class="info-row"><span class="label">Montant à servir</span><span class="value">${fmt(toServe)}</span></div>
+      <div class="info-row"><span class="label">Déjà servi</span><span class="value">${fmt(served)}</span></div>
+      <div class="info-row"><span class="label">Reste à payer</span><span class="value" style="color:#dc2626;">${fmt(remaining)}</span></div>
+    </div>
+    <div class="retrait-hint"><i class="fa-solid fa-id-card"></i> Vérifiez l'identité du bénéficiaire avant de valider.</div>
+  `;
+
+  $('retrait-actions').style.display = 'block';
+  $('retrait-amount').value = remaining.toFixed(2);
+  calcRetraitRest();
+}
+
+function calcRetraitRest() {
+  if (!currentRetrait) return;
+  const amount = parseFloat($('retrait-amount').value) || 0;
+  const newRem = Math.max(0, currentRetrait.remaining - amount);
+  $('retrait-new-remaining').value = newRem.toFixed(2);
+}
+
+function confirmRetrait() {
+  if (!currentRetrait) return;
+  const { record, collection, remaining } = currentRetrait;
+  const amount = parseFloat($('retrait-amount').value) || 0;
+
+  if (amount <= 0)        return toast('Montant invalide', 'danger');
+  if (amount > remaining) return toast('Montant supérieur au reste à servir', 'danger');
+
+  const updated = {
+    ...record,
+    served: (record.served || 0) + amount,
+    remaining: record.toServe - ((record.served || 0) + amount)
+  };
+  updated.remaining = Math.max(0, updated.remaining);
+
+  const idx = state[collection].findIndex(r => r.id === record.id);
+  if (idx !== -1) state[collection][idx] = updated;
+
+  syncItem(collection, updated);
+
+  toast(`Retrait de ${fmt(amount)} validé`, 'success');
+  bootstrap.Modal.getInstance($('modalRetrait'))?.hide();
+  currentRetrait = null;
+}
+
+/* =========================================================
+   RÉSEAU / PWA
+   ========================================================= */
 function updateNet() {
   const el = $('netStatus');
   if (!el) return;
-  if (navigator.onLine) { 
-    el.className = 'badge-status status-online'; 
-    el.innerHTML = '<i class="fa-solid fa-wifi me-1"></i>En ligne'; 
-  } else { 
-    el.className = 'badge-status status-offline'; 
-    el.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i>Hors ligne'; 
+  if (navigator.onLine) {
+    el.className = 'badge-status status-online';
+    el.innerHTML = '<i class="fa-solid fa-wifi me-1"></i>En ligne';
+  } else {
+    el.className = 'badge-status status-offline';
+    el.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i>Hors ligne';
   }
 }
-window.addEventListener('online', () => { updateNet(); toast('Connexion rétablie', 'success'); });
+window.addEventListener('online',  () => { updateNet(); toast('Connexion rétablie', 'success'); });
 window.addEventListener('offline', () => { updateNet(); toast('Vous êtes hors ligne', 'warning'); });
 
-// ----- INIT -----
+/* =========================================================
+   INIT
+   ========================================================= */
 document.addEventListener('DOMContentLoaded', () => {
-  $('currentDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  if($('tauxMoyen')) $('tauxMoyen').value = state.settings.tauxMoyen;
+  const d = new Date();
+  $('currentDate').textContent = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   updateNet();
   setupRealtimeListeners();
-  renderAll();
+
+  // Auto-remplissage du taux au focus
+  ['envoi-taux','envoi-date','envoi-time'].forEach(id => {
+    $(id)?.addEventListener('focus', () => {
+      if (id === 'envoi-taux' && !$(id).value) $(id).value = state.settings.tauxMoyen || '';
+    });
+  });
 });
 
-// ----- PWA SERVICE WORKER -----
+/* Service Worker (PWA) */
 if('serviceWorker' in navigator) {
   const swCode = `
-    const CACHE='mt-v1';
+    const CACHE='afri-link-home-v1';
     const URLS=['/'];
     self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS))));
     self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
@@ -1197,70 +773,6 @@ if('serviceWorker' in navigator) {
   const swBlob = new Blob([swCode],{type:'application/javascript'});
   const swUrl = URL.createObjectURL(swBlob);
   navigator.serviceWorker.register(swUrl).catch(()=>{});
-}
-
-// ----- BOUTON D'INSTALLATION PWA FLOTTANT INTELLIGENT -----
-let deferredPrompt = null;
-
-// Détection si l'application est déjà installée (mode standalone)
-const isStandalone =
-  window.matchMedia('(display-mode: standalone)').matches ||
-  window.matchMedia('(display-mode: fullscreen)').matches ||
-  window.navigator.standalone === true;
-
-function createInstallButton() {
-  if (document.getElementById('pwaInstallBtn')) return;
-  const btn = document.createElement('button');
-  btn.id = 'pwaInstallBtn';
-  btn.type = 'button';
-  btn.innerHTML = `<i class="fa-solid fa-download"></i><span>Installer l'application</span><span class="pwa-pulse"></span>`;
-  btn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    // Masquer le bouton juste après le clic pour éviter les doubles clics
-    btn.style.pointerEvents = 'none';
-    deferredPrompt.prompt();
-    try {
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        toast('Installation en cours...', 'success');
-      } else {
-        toast('Installation annulée', 'warning');
-      }
-    } catch (err) {
-      console.warn('Erreur prompt installation:', err);
-    }
-    deferredPrompt = null;
-    btn.remove();
-  });
-  document.body.appendChild(btn);
-  // Animation d'apparition
-  requestAnimationFrame(() => {
-    setTimeout(() => btn.classList.add('show'), 50);
-  });
-}
-
-function removeInstallButton() {
-  const btn = document.getElementById('pwaInstallBtn');
-  if (btn) btn.remove();
-}
-
-// Événement natif déclenché quand l'app est installable (Chrome/Edge/Android)
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isStandalone) createInstallButton();
-});
-
-// L'app a été installée
-window.addEventListener('appinstalled', () => {
-  deferredPrompt = null;
-  removeInstallButton();
-  toast('Application installée avec succès !', 'success');
-});
-
-// Si déjà installée, on ne fait rien (le bouton ne s'affichera pas)
-if (isStandalone) {
-  removeInstallButton();
 }
 </script>
 </body>
